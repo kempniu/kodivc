@@ -1,7 +1,7 @@
 EXECUTABLE=xbmcvc
 MODELDIR=`pkg-config --variable=modeldir pocketsphinx`
 LIBS=`pkg-config --cflags --libs pocketsphinx sphinxbase` -lcurl
-GITVERSION=`git log --oneline | cut -d' ' -f1`
+GITVERSION=`git log --oneline | cut -d' ' -f1 | head -1`
 
 all:
 	gcc -o $(EXECUTABLE) $(EXECUTABLE).c -DGITVERSION=\"$(GITVERSION)\" -DMODELDIR=\"$(MODELDIR)\" $(LIBS)
