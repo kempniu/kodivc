@@ -61,19 +61,31 @@
 /* Macros */
 #define DIE(message)			{ printf("Fatal error at %s:%d: %s\n", __FILE__, __LINE__, message); exit(1); }
 
-/* structure passed to CURL callback */
+/* Structure passed to CURL callback */
 typedef struct {
 	char**	dst;	/* destination buffer */
 	int	dst_s;	/* destination buffer size */
 } curl_userdata_t;
 
+/* Structure describing an action */
+typedef struct {
+	char*	word;
+	char*	method;
+	char*	params;
+	int	needs_player_id;
+} action_t;
+
 /* Global configuration variables */
-char* config_json_rpc_host;
-char* config_json_rpc_port;
-char* config_alsa_device;
+char*		config_json_rpc_host;
+char*		config_json_rpc_port;
+char*		config_alsa_device;
+
+/* Action database */
+action_t**	actions = NULL;
+int		actions_count = 0;
 
 /* Exit flag */
-volatile int exit_flag = 0;
+volatile int	exit_flag = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -331,6 +343,70 @@ set_exit_flag(int signal)
 	exit_flag = 1;
 }
 
+void
+register_action(char* word, char* method, char *params, int needs_player_id)
+{
+
+	/* Allocate memory for action structure */
+	action_t* a = malloc(sizeof(action_t));
+
+	/* Copy function arguments to structure fields */
+	a->word = strdup(word);
+	a->method = strdup(method);
+
+	if (params)
+		a->params = strdup(params);
+	else
+		a->params = NULL;
+
+	a->needs_player_id = needs_player_id;
+
+	/* Expand action database */
+	actions = realloc(actions, (actions_count + 1) * sizeof(action_t *));
+	/* Add action to database */
+	actions[actions_count] = a;
+	actions_count++;
+
+}
+
+void
+initialize_actions(void)
+{
+
+	/* General actions */
+	register_action("BACK", "Input.Back", NULL, 0);
+	register_action("DOWN", "Input.Down", NULL, 0);
+	register_action("HOME", "Input.Home", NULL, 0);
+	register_action("LEFT", "Input.Left", NULL, 0);
+	register_action("MUTE", "Application.SetMute", "\"mute\": true", 0);
+	register_action("RIGHT", "Input.Right", NULL, 0);
+	register_action("SELECT", "Input.Select", NULL, 0);
+	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", 0);
+	register_action("UP", "Input.Up", NULL, 0);
+
+	/* Player actions */
+	register_action("NEXT", "Player.GoNext", NULL, 1);
+	register_action("PAUSE", "Player.PlayPause", NULL, 1);
+	register_action("PLAY", "Player.PlayPause", NULL, 1);
+	register_action("PREVIOUS", "Player.GoPrevious", NULL, 1);
+	register_action("STOP", "Player.Stop", NULL, 1);
+
+}
+
+void
+cleanup_actions()
+{
+	int i;
+	for (i=0; i<actions_count; i++)
+	{
+		free(actions[i]->word);
+		free(actions[i]->method);
+		free(actions[i]->params);
+		free(actions[i]);
+	}
+	free(actions);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -348,6 +424,9 @@ main(int argc, char *argv[])
 	parse_options(argc, argv);
 
 	printf("Initializing, please wait...\n");
+
+	/* Setup action database */
+	initialize_actions();
 
 	/* Suppress verbose messages from pocketsphinx */
 	if (freopen("/dev/null", "w", stderr) == NULL)
@@ -471,6 +550,8 @@ main(int argc, char *argv[])
 	cont_ad_close(cont);
 	ad_close(ad);
 	ps_free(ps);
+
+	cleanup_actions();
 
 	free(config_json_rpc_host);
 	free(config_json_rpc_port);
