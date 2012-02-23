@@ -69,13 +69,13 @@ typedef struct {
 
 /* Structure describing an action */
 typedef struct {
-	char*	word;
-	char*	method;
-	char*	params;
-	char**	req;
-	int	req_size;
-	int	repeats;
-	int	needs_player_id;
+	char*		word;
+	char*		method;
+	char*		params;
+	const char**	req;
+	int		req_size;
+	int		repeats;
+	int		needs_player_id;
 } action_t;
 
 /* Global configuration variables */
@@ -91,6 +91,19 @@ int		actions_count = 0;
 volatile int	exit_flag = 0;
 
 /*---------------------------------------------------------------------------*/
+
+int
+in_array(const char* haystack[], int haystack_size, char *needle)
+{
+	int found = 0;
+	int i = 0;
+	while (i < haystack_size && !found)
+	{
+		if (strcmp(haystack[i++], needle) == 0)
+			found = 1;
+	}
+	return found;
+}
 
 /* CURL callback for saving HTTP response to a pointer passed via userdata */
 size_t
@@ -233,22 +246,33 @@ perform_actions(const char *hyp)
 					/* Ignore action if it requires a player ID and we don't have a player ID */
 					if ( (action->needs_player_id && player_id) || !action->needs_player_id )
 					{
-						/* Insert a copy of action into queue */
-						action_queued = malloc(sizeof(action_t));
-						memcpy(action_queued, action, sizeof(action_t));
-						queue[j++] = action_queued;
-						/* Fill player ID if action needs it */
-						if (action->needs_player_id)
+						/* Is this a repeating action? */
+						if (action->repeats > 1)
 						{
-							params_fmt = strdup("\"playerid\":%s");
-							action_queued->params = malloc(strlen(params_fmt) + strlen(player_id));
-							sprintf(action_queued->params, params_fmt, player_id);
-							free(params_fmt);
+							/* Repeating action has to be preceded by a repeatable action */
+							if (j > 0 && in_array(action->req, action->req_size, queue[j-1]->word))
+								/* Set number of repeats for preceding action */
+								queue[j-1]->repeats = action->repeats;
 						}
-						/* Fill action params if needed */
-						else if (action->params)
+						else
 						{
-							action_queued->params = strdup(action->params);
+							/* Insert a copy of action into queue */
+							action_queued = malloc(sizeof(action_t));
+							memcpy(action_queued, action, sizeof(action_t));
+							queue[j++] = action_queued;
+							/* Fill player ID if action needs it */
+							if (action->needs_player_id)
+							{
+								params_fmt = strdup("\"playerid\":%s");
+								action_queued->params = malloc(strlen(params_fmt) + strlen(player_id));
+								sprintf(action_queued->params, params_fmt, player_id);
+								free(params_fmt);
+							}
+							/* Fill action params if needed */
+							else if (action->params)
+							{
+								action_queued->params = strdup(action->params);
+							}
 						}
 					}
 					else
@@ -267,13 +291,17 @@ perform_actions(const char *hyp)
 		}
 	} while (*(hyp + i++) != '\0' && j < MAX_ACTIONS);
 
-	/* Execute all actions from queue in 200ms intervals */
+	/* Execute all actions from queue */
 	for (i=0; i<j; i++)
 	{
-		send_json_rpc_request(queue[i]->method, queue[i]->params, NULL);
+		/* Repeat each action the desired number of times in 200ms intervals */
+		for (k=0; k<queue[i]->repeats; k++)
+		{
+			send_json_rpc_request(queue[i]->method, queue[i]->params, NULL);
+			usleep(200000);
+		}
 		free(queue[i]->params);
 		free(queue[i]);
-		usleep(200000);
 	}
 
 	/* Cleanup */
@@ -352,7 +380,7 @@ set_exit_flag(int signal)
 }
 
 void
-register_action(char* word, char* method, char *params, const char *req[], int req_size, int repeats, int needs_player_id)
+register_action(char* word, char* method, char* params, const char* req[], int req_size, int repeats, int needs_player_id)
 {
 
 	/* Allocate memory for action structure */
