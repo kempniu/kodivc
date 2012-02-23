@@ -165,19 +165,20 @@ void
 perform_actions(const char *hyp)
 {
 
-	int	i = 0;
-	int	j = 0;
-	int	ls = 0;
-	int	len;
-	char*	action_string;
-	char*	method = NULL;
-	char*	params = NULL;
-	char*	queue_methods[MAX_ACTIONS];
-	char*	queue_params[MAX_ACTIONS];
-	char*	response = NULL;
-	char*	player_id_offset = NULL;
-	char*	player_id = NULL;
-	char*	params_fmt = NULL;
+	int		i = 0;
+	int		j = 0;
+	int		k = 0;
+	int		ls = 0;
+	int		len;
+	int		matched = 0;
+	action_t*	action;
+	action_t*	action_queued;
+	action_t*	queue[MAX_ACTIONS];
+	char*		action_string;
+	char*		response = NULL;
+	char*		player_id_offset = NULL;
+	char*		player_id = NULL;
+	char*		params_fmt;
 
 	/* Get player ID via JSON-RPC */
 	send_json_rpc_request("Player.GetActivePlayers", NULL, &response);
@@ -215,42 +216,46 @@ perform_actions(const char *hyp)
 			memset(action_string, 0, len);
 			memcpy(action_string, hyp + ls, len - 1);
 
-			/* Set method and parameters based on word */
-			     if (strcmp(action_string, "BACK") == 0)	{ method = "Input.Back"; }
-			else if (strcmp(action_string, "DOWN") == 0)	{ method = "Input.Down"; }
-			else if (strcmp(action_string, "HOME") == 0)	{ method = "Input.Home"; }
-			else if (strcmp(action_string, "LEFT") == 0)	{ method = "Input.Left"; }
-			else if (strcmp(action_string, "MUTE") == 0)	{ method = "Application.SetMute"; params = strdup("\"mute\": true"); }
-			else if (strcmp(action_string, "RIGHT") == 0)	{ method = "Input.Right"; }
-			else if (strcmp(action_string, "SELECT") == 0)	{ method = "Input.Select"; }
-			else if (strcmp(action_string, "UNMUTE") == 0)	{ method = "Application.SetMute"; params = strdup("\"mute\": false"); }
-			else if (strcmp(action_string, "UP") == 0)	{ method = "Input.Up"; }
+			/* Reset loop iterator and end flag */
+			k = 0;
+			matched = 0;
 
-			/* Player actions are only valid when there is an active player */
-			else if (player_id)
+			while(k < actions_count && !matched)
 			{
-
-				/* Insert player ID into parameters syntax template */
-				params = "\"playerid\":%s";
-				params_fmt = strdup(params);
-				params = malloc(strlen(params_fmt) + strlen(player_id));
-				sprintf(params, params_fmt, player_id);
-
-				/* Set method based on word */
-				     if (strcmp(action_string, "NEXT") == 0)	{ method = "Player.GoNext"; }
-				else if (strcmp(action_string, "PAUSE") == 0)	{ method = "Player.PlayPause"; }
-				else if (strcmp(action_string, "PLAY") == 0)	{ method = "Player.PlayPause"; }
-				else if (strcmp(action_string, "PREVIOUS") == 0){ method = "Player.GoPrevious"; }
-				else if (strcmp(action_string, "STOP") == 0)	{ method = "Player.Stop"; }
-
-			}
-
-			/* If a known word was recognized, queue action */
-			if (method != NULL)
-			{
-				queue_methods[j] = method;
-				queue_params[j] = params;
-				j++;
+				/* Process next action */
+				action = actions[k];
+				/* Check if action word matches spoken word */
+				if (strcmp(action->word, action_string) == 0)
+				{
+					/* Ignore action if it requires a player ID and we don't have a player ID */
+					if ( (action->needs_player_id && player_id) || !action->needs_player_id )
+					{
+						/* Insert a copy of action into queue */
+						action_queued = malloc(sizeof(action_t));
+						memcpy(action_queued, action, sizeof(action_t));
+						queue[j++] = action_queued;
+						/* Fill player ID if action needs it */
+						if (action->needs_player_id)
+						{
+							params_fmt = strdup("\"playerid\":%s");
+							action_queued->params = malloc(strlen(params_fmt) + strlen(player_id));
+							sprintf(action_queued->params, params_fmt, player_id);
+							free(params_fmt);
+						}
+						/* Fill action params if needed */
+						else if (action->params)
+						{
+							action_queued->params = strdup(action->params);
+						}
+					}
+					else
+					{
+						printf("WARNING: Player action %s ignored as there is no active player\n", action_string);
+					}
+					/* Stop searching for a matching action */
+					matched = 1;
+				}
+				k++;
 			}
 
 			free(action_string);
@@ -262,13 +267,13 @@ perform_actions(const char *hyp)
 	/* Execute all actions from queue in 200ms intervals */
 	for (i=0; i<j; i++)
 	{
-		send_json_rpc_request(queue_methods[i], queue_params[i], NULL);
+		send_json_rpc_request(queue[i]->method, queue[i]->params, NULL);
+		free(queue[i]->params);
+		free(queue[i]);
 		usleep(200000);
 	}
 
 	/* Cleanup */
-	free(params_fmt);
-	free(params);
 	free(player_id);
 	free(response);
 
