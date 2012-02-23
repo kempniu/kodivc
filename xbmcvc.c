@@ -73,6 +73,7 @@ typedef struct {
 	char*	method;
 	char*	params;
 	char**	req;
+	int	req_size;
 	int	repeats;
 	int	needs_player_id;
 } action_t;
@@ -351,7 +352,7 @@ set_exit_flag(int signal)
 }
 
 void
-register_action(char* word, char* method, char *params, const char *req[], int repeats, int needs_player_id)
+register_action(char* word, char* method, char *params, const char *req[], int req_size, int repeats, int needs_player_id)
 {
 
 	/* Allocate memory for action structure */
@@ -368,14 +369,15 @@ register_action(char* word, char* method, char *params, const char *req[], int r
 
 	if (req)
 	{
-		a->req = calloc(sizeof(req), sizeof(char *));
-		memcpy(a->req, req, sizeof(req) * sizeof(char *));
+		a->req = calloc(req_size, sizeof(char *));
+		memcpy(a->req, req, req_size * sizeof(char *));
 	}
 	else
 	{
 		a->req = NULL;
 	}
 
+	a->req_size = req_size;
 	a->repeats = repeats;
 	a->needs_player_id = needs_player_id;
 
@@ -392,22 +394,22 @@ initialize_actions(void)
 {
 
 	/* General actions */
-	register_action("BACK", "Input.Back", NULL, NULL, 1, 0);
-	register_action("DOWN", "Input.Down", NULL, NULL, 1, 0);
-	register_action("HOME", "Input.Home", NULL, NULL, 1, 0);
-	register_action("LEFT", "Input.Left", NULL, NULL, 1, 0);
-	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 1, 0);
-	register_action("RIGHT", "Input.Right", NULL, NULL, 1, 0);
-	register_action("SELECT", "Input.Select", NULL, NULL, 1, 0);
-	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 1, 0);
-	register_action("UP", "Input.Up", NULL, NULL, 1, 0);
+	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0);
+	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0);
+	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0);
+	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0);
+	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0);
+	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0);
+	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0);
+	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0);
+	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0);
 
 	/* Player actions */
-	register_action("NEXT", "Player.GoNext", NULL, NULL, 1, 1);
-	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 1, 1);
-	register_action("PLAY", "Player.PlayPause", NULL, NULL, 1, 1);
-	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 1, 1);
-	register_action("STOP", "Player.Stop", NULL, NULL, 1, 1);
+	register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1);
+	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1);
+	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1);
+	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1);
+	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1);
 
 }
 
