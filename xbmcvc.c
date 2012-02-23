@@ -360,7 +360,11 @@ register_action(char* word, char* method, char *params, const char *req[], int r
 
 	/* Copy function arguments to structure fields */
 	a->word = strdup(word);
-	a->method = strdup(method);
+
+	if (method)
+		a->method = strdup(method);
+	else
+		a->method = NULL;
 
 	if (params)
 		a->params = strdup(params);
