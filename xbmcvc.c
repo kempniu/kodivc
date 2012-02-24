@@ -205,7 +205,7 @@ perform_actions(const char *hyp)
 	/* XBMC did not respond - its webserver is probably not enabled */
 	if (!response)
 	{
-		printf("WARNING: JSON-RPC query not answered - is XBMC's webserver turned on?\n");
+		printf("ERROR: JSON-RPC query not answered - is XBMC's webserver turned on?\n");
 		return;
 	}
 
