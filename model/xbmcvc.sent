@@ -1,5 +1,7 @@
 <s> BACK </s>
 <s> DOWN </s>
+<s> FIVE </s>
+<s> FOUR </s>
 <s> HOME </s>
 <s> LEFT </s>
 <s> MUTE </s>
@@ -10,5 +12,7 @@
 <s> RIGHT </s>
 <s> SELECT </s>
 <s> STOP </s>
+<s> THREE </s>
+<s> TWO </s>
 <s> UNMUTE </s>
 <s> UP </s>

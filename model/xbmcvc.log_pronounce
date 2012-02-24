@@ -1,5 +1,7 @@
 BACK - Main 
 DOWN - Main 
+FIVE - Main 
+FOUR - Main 
 HOME - Main 
 LEFT - Main 
 MUTE - Main 
@@ -10,6 +12,8 @@ PREVIOUS - Main
 RIGHT - Main 
 SELECT - Main 
 STOP - Main 
+THREE - Main 
+TWO - Main 
 pronounce: verbosity is 1
 UNMUTE - Morpheme: UN MUTE 
 UP - Main 

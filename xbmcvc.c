@@ -59,6 +59,7 @@
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
 
 /* Macros */
+#define ARRAY_SIZE(array)		(sizeof(array) / sizeof(array[0]))
 #define DIE(message)			{ printf("Fatal error at %s:%d: %s\n", __FILE__, __LINE__, message); exit(1); }
 
 /* Structure passed to CURL callback */
@@ -86,6 +87,8 @@ char*		config_alsa_device;
 /* Action database */
 action_t**	actions = NULL;
 int		actions_count = 0;
+const char*	repeatable[] = { "DOWN", "LEFT", "NEXT", "PREVIOUS", "RIGHT", "UP" };
+int		repeatable_size = ARRAY_SIZE(repeatable);
 
 /* Exit flag */
 volatile int	exit_flag = 0;
@@ -442,6 +445,12 @@ initialize_actions(void)
 	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1);
 	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1);
 	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1);
+
+	/* Repeating actions */
+	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0);
+	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0);
+	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0);
+	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0);
 
 }
 
