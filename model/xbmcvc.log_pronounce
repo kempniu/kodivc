@@ -11,10 +11,12 @@ PLAY - Main
 PREVIOUS - Main 
 RIGHT - Main 
 SELECT - Main 
+SHUFFLE - Main 
 STOP - Main 
 THREE - Main 
 TWO - Main 
 pronounce: verbosity is 1
 UNMUTE - Morpheme: UN MUTE 
+UNSHUFFLE - Morpheme: UN SHUFFLE 
 UP - Main 
 

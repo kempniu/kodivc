@@ -444,7 +444,9 @@ initialize_actions(void)
 	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1);
 	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1);
 	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1);
+	register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1);
 	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1);
+	register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1);
 
 	/* Repeating actions */
 	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0);
