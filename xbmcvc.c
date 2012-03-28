@@ -77,6 +77,7 @@ typedef struct {
 	int		req_size;
 	int		repeats;
 	int		needs_player_id;
+	int		dynamic_params;
 } action_t;
 
 /* Global configuration variables */
@@ -181,6 +182,23 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 }
 
 void
+append_param(char **current, char *append)
+{
+	if (*current)
+	{
+		*current = realloc(*current, strlen(*current) + strlen(append) + 2);
+		strcat(*current, ",");
+	}
+	else
+	{
+		*current = malloc(strlen(append) + 1);
+		**current = '\0';
+	}
+	strcat(*current, append);
+}
+
+
+void
 perform_actions(const char *hyp)
 {
 
@@ -198,6 +216,8 @@ perform_actions(const char *hyp)
 	char*		player_id_offset = NULL;
 	char*		player_id = NULL;
 	char*		params_fmt;
+	char*		param;
+	int		expect_arg = 0;
 
 	/* Get player ID via JSON-RPC */
 	send_json_rpc_request("Player.GetActivePlayers", NULL, &response);
@@ -239,53 +259,103 @@ perform_actions(const char *hyp)
 			k = 0;
 			matched = 0;
 
-			while(k < actions_count && !matched)
+			/* Check if we're not expecting an argument to last action */
+			if (!expect_arg)
 			{
-				/* Process next action */
-				action = actions[k];
-				/* Check if action word matches spoken word */
-				if (strcmp(action->word, action_string) == 0)
+				while (k < actions_count && !matched)
 				{
-					/* Ignore action if it requires a player ID and we don't have a player ID */
-					if ( (action->needs_player_id && player_id) || !action->needs_player_id )
+					/* Process next action */
+					action = actions[k];
+					/* Check if action word matches spoken word */
+					if (strcmp(action->word, action_string) == 0)
 					{
-						/* Is this a repeating action? */
-						if (action->repeats > 1)
+						/* Ignore action if it requires a player ID and we don't have a player ID */
+						if ( (action->needs_player_id && player_id) || !action->needs_player_id )
 						{
-							/* Repeating action has to be preceded by a repeatable action */
-							if (j > 0 && in_array(action->req, action->req_size, queue[j-1]->word))
-								/* Set number of repeats for preceding action */
-								queue[j-1]->repeats = action->repeats;
+							/* Is this a repeating action? */
+							if (action->repeats > 1)
+							{
+								/* Repeating action has to be preceded by a repeatable action */
+								if (j > 0 && in_array(action->req, action->req_size, queue[j-1]->word))
+									/* Set number of repeats for preceding action */
+									queue[j-1]->repeats = action->repeats;
+							}
+							else
+							{
+
+								/* Insert a copy of action into queue */
+								action_queued = malloc(sizeof(action_t));
+								memcpy(action_queued, action, sizeof(action_t));
+								action_queued->params = NULL;
+								queue[j++] = action_queued;
+
+								/* Fill player ID if action needs it */
+								if (action->needs_player_id)
+								{
+									params_fmt = strdup("\"playerid\":%s");
+									action_queued->params = malloc(strlen(params_fmt) + strlen(player_id));
+									sprintf(action_queued->params, params_fmt, player_id);
+									free(params_fmt);
+								}
+
+								/* Fill action params if needed */
+								if (action->params)
+								{
+									if (action->dynamic_params)
+										expect_arg = 1;
+									else
+										append_param(&action_queued->params, action->params);
+								}
+
+							}
 						}
 						else
 						{
-							/* Insert a copy of action into queue */
-							action_queued = malloc(sizeof(action_t));
-							memcpy(action_queued, action, sizeof(action_t));
-							queue[j++] = action_queued;
-							/* Fill player ID if action needs it */
-							if (action->needs_player_id)
-							{
-								params_fmt = strdup("\"playerid\":%s");
-								action_queued->params = malloc(strlen(params_fmt) + strlen(player_id));
-								sprintf(action_queued->params, params_fmt, player_id);
-								free(params_fmt);
-							}
-							/* Fill action params if needed */
-							else if (action->params)
-							{
-								action_queued->params = strdup(action->params);
-							}
+							printf("WARNING: Player action %s ignored as there is no active player\n", action_string);
 						}
+						/* Stop searching for a matching action */
+						matched = 1;
 					}
-					else
-					{
-						printf("WARNING: Player action %s ignored as there is no active player\n", action_string);
-					}
-					/* Stop searching for a matching action */
-					matched = 1;
+					k++;
 				}
-				k++;
+			}
+			else
+			{
+
+				/* Don't look for an action but rather for an argument to last action */
+				while (k < queue[j-1]->req_size && !matched)
+				{
+					/* If current word is a valid argument to last action... */
+					if (strstr(queue[j-1]->req[k], action_string))
+					{
+						/* Get param value for current word */
+						param = strchr(queue[j-1]->req[k], ':') + 1;
+						/* Generate formatted param string */
+						params_fmt = malloc(strlen(action->params) + strlen(param) + 1);
+						sprintf(params_fmt, action->params, param);
+						/* Add formatted param string to last action's params */
+						append_param(&queue[j-1]->params, params_fmt);
+						/* Cleanup */
+						free(params_fmt);
+						/* Stop searching for an argument */
+						matched = 1;
+					}
+					k++;
+				}
+
+				/* If no valid argument was found, delete last action */
+				if (!matched)
+				{
+					free(queue[j-1]->params);
+					free(queue[j-1]);
+					j--;
+					/* Current word is probably an action - process it again */
+					i -= strlen(action_string) + 1;
+				}
+
+				/* Don't expect an argument any more */
+				expect_arg = 0;
+
 			}
 
 			free(action_string);
@@ -383,7 +453,7 @@ set_exit_flag(int signal)
 }
 
 void
-register_action(char* word, char* method, char* params, const char* req[], int req_size, int repeats, int needs_player_id)
+register_action(char* word, char* method, char* params, const char* req[], int req_size, int repeats, int needs_player_id, int dynamic_params)
 {
 
 	/* Allocate memory for action structure */
@@ -415,6 +485,7 @@ register_action(char* word, char* method, char* params, const char* req[], int r
 	a->req_size = req_size;
 	a->repeats = repeats;
 	a->needs_player_id = needs_player_id;
+	a->dynamic_params = dynamic_params;
 
 	/* Expand action database */
 	actions = realloc(actions, (actions_count + 1) * sizeof(action_t *));
@@ -429,30 +500,30 @@ initialize_actions(void)
 {
 
 	/* General actions */
-	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0);
-	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0);
-	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0);
-	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0);
-	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0);
-	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0);
-	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0);
-	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0);
-	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0);
+	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0, 0);
+	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0, 0);
+	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0, 0);
+	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0, 0);
+	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0, 0);
+	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0, 0);
+	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0);
+	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0);
+	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
 
 	/* Player actions */
-	register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1);
-	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1);
-	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1);
-	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1);
-	register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1);
-	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1);
-	register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1);
+	register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
+	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
+	register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
+	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+	register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
 
 	/* Repeating actions */
-	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0);
-	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0);
-	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0);
-	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0);
+	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0, 0);
+	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0, 0);
+	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0);
+	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
 
 }
 
