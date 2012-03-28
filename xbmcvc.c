@@ -92,6 +92,8 @@ const char*	repeatable[] = { "DOWN", "LEFT", "NEXT", "PREVIOUS", "RIGHT", "UP" }
 int		repeatable_size = ARRAY_SIZE(repeatable);
 const char*	repeat_args[] = { "ALL:all", "ONE:one", "OFF:off" };
 int		repeat_args_size = ARRAY_SIZE(repeat_args);
+const char*	volume_args[] = { "TEN:10", "TWENTY:20", "THIRTY:30", "FOURTY:40", "FIFTY:50", "SIXTY:60", "SEVENTY:70", "EIGHTY:80", "NINETY:90", "MAX:100" };
+int		volume_args_size = ARRAY_SIZE(volume_args);
 
 /* Exit flag */
 volatile int	exit_flag = 0;
@@ -511,6 +513,7 @@ initialize_actions(void)
 	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0);
 	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0);
 	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
+	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1);
 
 	/* Player actions */
 	register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);

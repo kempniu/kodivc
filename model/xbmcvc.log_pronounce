@@ -1,12 +1,18 @@
 ALL - Main 
 BACK - Main 
 DOWN - Main 
+EIGHTY - Main 
+FIFTY - Main 
 FIVE - Main 
 FOUR - Main 
+pronounce: verbosity is 1
+FOURTY - By LtoS rules
 HOME - Main 
 LEFT - Main 
+MAX - Main 
 MUTE - Main 
 NEXT - Main 
+NINETY - Main 
 OFF - Main 
 ONE - Main 
 PAUSE - Main 
@@ -15,12 +21,17 @@ PREVIOUS - Main
 REPEAT - Main 
 RIGHT - Main 
 SELECT - Main 
+SEVENTY - Main 
 SHUFFLE - Main 
+SIXTY - Main 
 STOP - Main 
+TEN - Main 
+THIRTY - Main 
 THREE - Main 
+TWENTY - Main 
 TWO - Main 
-pronounce: verbosity is 1
 UNMUTE - Morpheme: UN MUTE 
 UNSHUFFLE - Morpheme: UN SHUFFLE 
 UP - Main 
+VOLUME - Main 
 
