@@ -1,4 +1,4 @@
-Language model created by QuickLM on Sat Mar 24 06:08:52 EDT 2012
+Language model created by QuickLM on Wed Mar 28 14:26:25 EDT 2012
 Copyright (c) 1996-2010 Carnegie Mellon University and Alexander I. Rudnicky
 
 The model is in standard ARPA format, designed by Doug Paul while he was at MITRE.
@@ -7,58 +7,67 @@ The code that was used to produce this language model is available in Open Sourc
 Please visit http://www.speech.cs.cmu.edu/tools/ for more information
 
 The (fixed) discount mass is 0.5. The backoffs are computed using the ratio method.
-This model based on a corpus of 20 sentences and 22 words
+This model based on a corpus of 24 sentences and 26 words
 
 \data\
-ngram 1=22
-ngram 2=40
-ngram 3=20
+ngram 1=26
+ngram 2=48
+ngram 3=24
 
 \1-grams:
 -0.7782 </s> -0.3010
 -0.7782 <s> -0.2218
--2.0792 BACK -0.2218
--2.0792 DOWN -0.2218
--2.0792 FIVE -0.2218
--2.0792 FOUR -0.2218
--2.0792 HOME -0.2218
--2.0792 LEFT -0.2218
--2.0792 MUTE -0.2218
--2.0792 NEXT -0.2218
--2.0792 PAUSE -0.2218
--2.0792 PLAY -0.2218
--2.0792 PREVIOUS -0.2218
--2.0792 RIGHT -0.2218
--2.0792 SELECT -0.2218
--2.0792 SHUFFLE -0.2218
--2.0792 STOP -0.2218
--2.0792 THREE -0.2218
--2.0792 TWO -0.2218
--2.0792 UNMUTE -0.2218
--2.0792 UNSHUFFLE -0.2218
--2.0792 UP -0.2218
+-2.1584 ALL -0.2218
+-2.1584 BACK -0.2218
+-2.1584 DOWN -0.2218
+-2.1584 FIVE -0.2218
+-2.1584 FOUR -0.2218
+-2.1584 HOME -0.2218
+-2.1584 LEFT -0.2218
+-2.1584 MUTE -0.2218
+-2.1584 NEXT -0.2218
+-2.1584 OFF -0.2218
+-2.1584 ONE -0.2218
+-2.1584 PAUSE -0.2218
+-2.1584 PLAY -0.2218
+-2.1584 PREVIOUS -0.2218
+-2.1584 REPEAT -0.2218
+-2.1584 RIGHT -0.2218
+-2.1584 SELECT -0.2218
+-2.1584 SHUFFLE -0.2218
+-2.1584 STOP -0.2218
+-2.1584 THREE -0.2218
+-2.1584 TWO -0.2218
+-2.1584 UNMUTE -0.2218
+-2.1584 UNSHUFFLE -0.2218
+-2.1584 UP -0.2218
 
 \2-grams:
--1.6021 <s> BACK 0.0000
--1.6021 <s> DOWN 0.0000
--1.6021 <s> FIVE 0.0000
--1.6021 <s> FOUR 0.0000
--1.6021 <s> HOME 0.0000
--1.6021 <s> LEFT 0.0000
--1.6021 <s> MUTE 0.0000
--1.6021 <s> NEXT 0.0000
--1.6021 <s> PAUSE 0.0000
--1.6021 <s> PLAY 0.0000
--1.6021 <s> PREVIOUS 0.0000
--1.6021 <s> RIGHT 0.0000
--1.6021 <s> SELECT 0.0000
--1.6021 <s> SHUFFLE 0.0000
--1.6021 <s> STOP 0.0000
--1.6021 <s> THREE 0.0000
--1.6021 <s> TWO 0.0000
--1.6021 <s> UNMUTE 0.0000
--1.6021 <s> UNSHUFFLE 0.0000
--1.6021 <s> UP 0.0000
+-1.6812 <s> ALL 0.0000
+-1.6812 <s> BACK 0.0000
+-1.6812 <s> DOWN 0.0000
+-1.6812 <s> FIVE 0.0000
+-1.6812 <s> FOUR 0.0000
+-1.6812 <s> HOME 0.0000
+-1.6812 <s> LEFT 0.0000
+-1.6812 <s> MUTE 0.0000
+-1.6812 <s> NEXT 0.0000
+-1.6812 <s> OFF 0.0000
+-1.6812 <s> ONE 0.0000
+-1.6812 <s> PAUSE 0.0000
+-1.6812 <s> PLAY 0.0000
+-1.6812 <s> PREVIOUS 0.0000
+-1.6812 <s> REPEAT 0.0000
+-1.6812 <s> RIGHT 0.0000
+-1.6812 <s> SELECT 0.0000
+-1.6812 <s> SHUFFLE 0.0000
+-1.6812 <s> STOP 0.0000
+-1.6812 <s> THREE 0.0000
+-1.6812 <s> TWO 0.0000
+-1.6812 <s> UNMUTE 0.0000
+-1.6812 <s> UNSHUFFLE 0.0000
+-1.6812 <s> UP 0.0000
+-0.3010 ALL </s> -0.3010
 -0.3010 BACK </s> -0.3010
 -0.3010 DOWN </s> -0.3010
 -0.3010 FIVE </s> -0.3010
@@ -67,9 +76,12 @@ ngram 3=20
 -0.3010 LEFT </s> -0.3010
 -0.3010 MUTE </s> -0.3010
 -0.3010 NEXT </s> -0.3010
+-0.3010 OFF </s> -0.3010
+-0.3010 ONE </s> -0.3010
 -0.3010 PAUSE </s> -0.3010
 -0.3010 PLAY </s> -0.3010
 -0.3010 PREVIOUS </s> -0.3010
+-0.3010 REPEAT </s> -0.3010
 -0.3010 RIGHT </s> -0.3010
 -0.3010 SELECT </s> -0.3010
 -0.3010 SHUFFLE </s> -0.3010
@@ -81,6 +93,7 @@ ngram 3=20
 -0.3010 UP </s> -0.3010
 
 \3-grams:
+-0.3010 <s> ALL </s>
 -0.3010 <s> BACK </s>
 -0.3010 <s> DOWN </s>
 -0.3010 <s> FIVE </s>
@@ -89,9 +102,12 @@ ngram 3=20
 -0.3010 <s> LEFT </s>
 -0.3010 <s> MUTE </s>
 -0.3010 <s> NEXT </s>
+-0.3010 <s> OFF </s>
+-0.3010 <s> ONE </s>
 -0.3010 <s> PAUSE </s>
 -0.3010 <s> PLAY </s>
 -0.3010 <s> PREVIOUS </s>
+-0.3010 <s> REPEAT </s>
 -0.3010 <s> RIGHT </s>
 -0.3010 <s> SELECT </s>
 -0.3010 <s> SHUFFLE </s>

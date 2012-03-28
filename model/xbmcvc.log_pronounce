@@ -1,3 +1,4 @@
+ALL - Main 
 BACK - Main 
 DOWN - Main 
 FIVE - Main 
@@ -6,9 +7,12 @@ HOME - Main
 LEFT - Main 
 MUTE - Main 
 NEXT - Main 
+OFF - Main 
+ONE - Main 
 PAUSE - Main 
 PLAY - Main 
 PREVIOUS - Main 
+REPEAT - Main 
 RIGHT - Main 
 SELECT - Main 
 SHUFFLE - Main 

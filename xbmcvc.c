@@ -90,6 +90,8 @@ action_t**	actions = NULL;
 int		actions_count = 0;
 const char*	repeatable[] = { "DOWN", "LEFT", "NEXT", "PREVIOUS", "RIGHT", "UP" };
 int		repeatable_size = ARRAY_SIZE(repeatable);
+const char*	repeat_args[] = { "ALL:all", "ONE:one", "OFF:off" };
+int		repeat_args_size = ARRAY_SIZE(repeat_args);
 
 /* Exit flag */
 volatile int	exit_flag = 0;
@@ -515,6 +517,7 @@ initialize_actions(void)
 	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
 	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
 	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
+	register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 1);
 	register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
 	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
 	register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
