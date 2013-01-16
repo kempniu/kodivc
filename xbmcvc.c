@@ -327,6 +327,8 @@ perform_actions(const char *hyp)
 					}
 					k++;
 				}
+				if (k == actions_count && !matched)
+					printf("WARNING: Unknown action %s\n", action_string);
 			}
 			else
 			{
