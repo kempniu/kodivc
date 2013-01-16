@@ -42,12 +42,13 @@
 /* Constants */
 #define VERSION				"0.2"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H host ] [ -P port ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H host ] [ -P port ] [ -V ] [ -t ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
 					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
 					"    -D device    Name of ALSA device to capture speech from\n" \
 					"    -V           Print version information and exit\n" \
+					"    -t           Enable test mode - enter commands on stdin\n" \
 					"    -h           Print this help message\n" \
 					"\n"
 
@@ -89,6 +90,7 @@ typedef struct {
 char*		config_json_rpc_host;
 char*		config_json_rpc_port;
 char*		config_alsa_device;
+int		config_test_mode = 0;
 
 /* Action database */
 action_t**	actions = NULL;
@@ -410,7 +412,7 @@ parse_options(int argc, char *argv[])
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:Vh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:D:Vth")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -437,6 +439,11 @@ parse_options(int argc, char *argv[])
 				quit = 1;
 				break;
 
+			/* Test mode */
+			case 't':
+				config_test_mode = 1;
+				break;
+				
 			/* Help or unknown option */
 			case 'h':
 			default:
@@ -559,6 +566,8 @@ int
 main(int argc, char *argv[])
 {
 
+	int		n;
+	char		hyp_test[255];
 	cmd_ln_t*	config;
 	ps_decoder_t*	ps;
 	ad_rec_t*	ad;
@@ -590,128 +599,150 @@ main(int argc, char *argv[])
 	/* Setup action database */
 	initialize_actions();
 
-	/* Suppress verbose messages from pocketsphinx */
-	if (freopen("/dev/null", "w", stderr) == NULL)
-		DIE("Failed to redirect stderr");
-
-	/* Initialize pocketsphinx */
-	config = cmd_ln_init(NULL, ps_args(), TRUE,
-		"-hmm", MODEL_HMM,
-		"-lm", MODEL_LM,
-		"-dict", MODEL_DICT,
-		NULL);
-	if (config == NULL)
-		DIE("Error creating pocketsphinx configuration");
-
-	ps = ps_init(config);
-	if (ps == NULL)
-		DIE("Error initializing pocketsphinx");
-
-	/* Open audio device for recording */
-	if ((ad = ad_open_dev(config_alsa_device, 16000)) == NULL)
-		DIE("Failed to open audio device");
-	/* Initialize continous listening module */
-	if ((cont = cont_ad_init(ad, ad_read)) == NULL)
-		DIE("Failed to initialize voice activity detection\n");
-	/* Start recording */
-	if (ad_start_rec(ad) < 0)
-		DIE("Failed to start recording\n");
-	/* Calibrate voice detection */
-	if (cont_ad_calib(cont) < 0)
-		DIE("Failed to calibrate voice activity detection\n");
-
-	/* Intercept SIGINT and SIGTERM for proper cleanup */
-	signal(SIGINT, set_exit_flag);
-	signal(SIGTERM, set_exit_flag);
-
-	printf("Ready for listening!\n");
-
-	/* Main listening loop */
-	for (;;)
+	if (config_test_mode)
 	{
-
-		/* Wait until we get any samples */
-		while ((k = cont_ad_read(cont, adbuf, 4096)) == 0)
-		{
-			if (usleep(100000) == -1)
-				break;
-		}
-
-		/* Exit main loop if we were interrupted */
-		if (exit_flag)
-			break;
-
-		if (k < 0)
-			DIE("Failed to read audio\n");
-
-		/* Start collecting utterance data */
-		if (ps_start_utt(ps, NULL) < 0)
-			DIE("Failed to start utterance\n");
-
-		if ((result = ps_process_raw(ps, adbuf, k, FALSE, FALSE)) < 0)
-			DIE("Failed to process utterance data\n");
-
-		/* Save timestamp for initial utterance samples */
-		timestamp = cont->read_ts;
-
-		/* Read the rest of utterance */
+		printf("Test mode enabled - enter space-separated commands in ALL CAPS. Enter blank line to end.\n");
 		for (;;)
 		{
-
-			if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
-				DIE("Failed to read audio\n");
-
-			if (k == 0)
+			if (fgets(hyp_test, 255, stdin) == NULL || hyp_test[0] == '\n')
 			{
-				/* Has it been 500ms since we last read any samples? */
-				if ((cont->read_ts - timestamp) > DEFAULT_SAMPLES_PER_SEC/8)
-					/* YES - Break the listening loop */
-					break;
-				else
-					/* NO - Wait a bit before reading further data */
-					if (usleep(20000) == -1)
-						break;
+				break;
 			}
 			else
 			{
-				/* New samples received - update timestamp */
+				/* Trim newline from hypothesis */
+				*(hyp_test + strlen(hyp_test) - 1) = '\0';
+				perform_actions(hyp_test);
+			}
+		}
+	}
+	else
+	{
+
+			/* Suppress verbose messages from pocketsphinx */
+			if (freopen("/dev/null", "w", stderr) == NULL)
+				DIE("Failed to redirect stderr");
+
+			/* Initialize pocketsphinx */
+			config = cmd_ln_init(NULL, ps_args(), TRUE,
+				"-hmm", MODEL_HMM,
+				"-lm", MODEL_LM,
+				"-dict", MODEL_DICT,
+				NULL);
+			if (config == NULL)
+				DIE("Error creating pocketsphinx configuration");
+
+			ps = ps_init(config);
+			if (ps == NULL)
+				DIE("Error initializing pocketsphinx");
+
+			/* Open audio device for recording */
+			if ((ad = ad_open_dev(config_alsa_device, 16000)) == NULL)
+				DIE("Failed to open audio device");
+			/* Initialize continous listening module */
+			if ((cont = cont_ad_init(ad, ad_read)) == NULL)
+				DIE("Failed to initialize voice activity detection\n");
+			/* Start recording */
+			if (ad_start_rec(ad) < 0)
+				DIE("Failed to start recording\n");
+			/* Calibrate voice detection */
+			if (cont_ad_calib(cont) < 0)
+				DIE("Failed to calibrate voice activity detection\n");
+
+			/* Intercept SIGINT and SIGTERM for proper cleanup */
+			signal(SIGINT, set_exit_flag);
+			signal(SIGTERM, set_exit_flag);
+
+			printf("Ready for listening!\n");
+
+			/* Main listening loop */
+			for (;;)
+			{
+
+				/* Wait until we get any samples */
+				while ((k = cont_ad_read(cont, adbuf, 4096)) == 0)
+				{
+					if (usleep(100000) == -1)
+						break;
+				}
+
+				/* Exit main loop if we were interrupted */
+				if (exit_flag)
+					break;
+
+				if (k < 0)
+					DIE("Failed to read audio\n");
+
+				/* Start collecting utterance data */
+				if (ps_start_utt(ps, NULL) < 0)
+					DIE("Failed to start utterance\n");
+
+				if ((result = ps_process_raw(ps, adbuf, k, FALSE, FALSE)) < 0)
+					DIE("Failed to process utterance data\n");
+
+				/* Save timestamp for initial utterance samples */
 				timestamp = cont->read_ts;
-				/* Process the samples received */
-				result = ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+
+				/* Read the rest of utterance */
+				for (;;)
+				{
+
+					if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
+						DIE("Failed to read audio\n");
+
+					if (k == 0)
+					{
+						/* Has it been 500ms since we last read any samples? */
+						if ((cont->read_ts - timestamp) > DEFAULT_SAMPLES_PER_SEC/8)
+							/* YES - Break the listening loop */
+							break;
+						else
+							/* NO - Wait a bit before reading further data */
+							if (usleep(20000) == -1)
+								break;
+					}
+					else
+					{
+						/* New samples received - update timestamp */
+						timestamp = cont->read_ts;
+						/* Process the samples received */
+						result = ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+					}
+
+				}
+
+				/* Stop listening */
+				ad_stop_rec(ad);
+				/* Flush any samples remaining in buffer - they will not be processed */
+				while (ad_read(ad, adbuf, 4096) >= 0);
+				/* Reset continous listening module */
+				cont_ad_reset(cont);
+				/* End utterance */
+				ps_end_utt(ps);
+
+				/* Exit main loop if we were interrupted */
+				if (exit_flag)
+					break;
+
+				/* Get hypothesis for utterance */
+				hyp = ps_get_hyp(ps, NULL, NULL);
+				/* Print hypothesis */
+				printf("Heard: \"%s\"\n", hyp);
+				/* Perform requested actions */
+				perform_actions(hyp);
+
+				/* Resume recording */
+				if (ad_start_rec(ad) < 0)
+					DIE("Failed to start recording\n");
+
 			}
 
-		}
-
-		/* Stop listening */
-		ad_stop_rec(ad);
-		/* Flush any samples remaining in buffer - they will not be processed */
-		while (ad_read(ad, adbuf, 4096) >= 0);
-		/* Reset continous listening module */
-		cont_ad_reset(cont);
-		/* End utterance */
-		ps_end_utt(ps);
-
-		/* Exit main loop if we were interrupted */
-		if (exit_flag)
-			break;
-
-		/* Get hypothesis for utterance */
-		hyp = ps_get_hyp(ps, NULL, NULL);
-		/* Print hypothesis */
-		printf("Heard: \"%s\"\n", hyp);
-		/* Perform requested actions */
-		perform_actions(hyp);
-
-		/* Resume recording */
-		if (ad_start_rec(ad) < 0)
-			DIE("Failed to start recording\n");
+			/* Cleanup */
+			cont_ad_close(cont);
+			ad_close(ad);
+			ps_free(ps);
 
 	}
-
-	/* Cleanup */
-	cont_ad_close(cont);
-	ad_close(ad);
-	ps_free(ps);
 
 	cleanup_actions();
 
