@@ -58,6 +58,11 @@
 #define JSON_RPC_POST			"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"id\":1}"
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
 
+/* Language model files */
+#define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
+#define MODEL_LM			MODELDIR "/lm/en/xbmcvc.lm"
+#define MODEL_DICT			MODELDIR "/lm/en/xbmcvc.dic"
+
 /* Macros */
 #define ARRAY_SIZE(array)		(sizeof(array) / sizeof(array[0]))
 #define DIE(message)			{ printf("Fatal error at %s:%d: %s\n", __FILE__, __LINE__, message); exit(1); }
@@ -566,6 +571,20 @@ main(int argc, char *argv[])
 
 	printf("Initializing, please wait...\n");
 
+	/* Check if language model files were properly installed */
+	if (access(MODEL_HMM, R_OK) == -1)
+	{
+		printf("Hidden Markov acoustic model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_HMM);
+		exit(1);
+	}
+
+	if (access(MODEL_LM, R_OK) == -1 || !access(MODEL_DICT, R_OK) == -1)
+	{
+		printf("xbmcvc language model not found. Please check if the following files are installed and readable:\n");
+		printf("  %s\n  %s\n", MODEL_LM, MODEL_DICT);
+		exit(1);
+	}
+
 	/* Setup action database */
 	initialize_actions();
 
@@ -575,9 +594,9 @@ main(int argc, char *argv[])
 
 	/* Initialize pocketsphinx */
 	config = cmd_ln_init(NULL, ps_args(), TRUE,
-		"-hmm", MODELDIR "/hmm/en_US/hub4wsj_sc_8k",
-		"-lm", MODELDIR "/lm/en/xbmcvc.lm",
-		"-dict", MODELDIR "/lm/en/xbmcvc.dic",
+		"-hmm", MODEL_HMM,
+		"-lm", MODEL_LM,
+		"-dict", MODEL_DICT,
 		NULL);
 	if (config == NULL)
 		DIE("Error creating pocketsphinx configuration");
