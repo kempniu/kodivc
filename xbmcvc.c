@@ -585,10 +585,6 @@ main(int argc, char *argv[])
 	int32		result;
 	const char*	hyp;
 
-	parse_options(argc, argv);
-
-	printf("Initializing, please wait...\n");
-
 	/* Check if language model files were properly installed */
 	if (access(MODEL_HMM, R_OK) == -1)
 	{
@@ -603,8 +599,10 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* Setup action database */
+	/* Setup action database and parse command line arguments */
+	printf("Initializing, please wait...\n");
 	initialize_actions();
+	parse_options(argc, argv);
 
 	if (config_test_mode)
 	{
