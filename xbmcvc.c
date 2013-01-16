@@ -359,6 +359,7 @@ perform_actions(const char *hyp)
 				/* If no valid argument was found, delete last action */
 				if (!matched)
 				{
+					printf("WARNING: %s is not a valid parameter for %s - interpreting as action\n", action_string, queue[j-1]->word);
 					free(queue[j-1]->params);
 					free(queue[j-1]);
 					j--;
