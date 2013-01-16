@@ -136,12 +136,13 @@ void
 send_json_rpc_request(const char *method, const char *params, char **dst)
 {
 
-	CURL*		curl;
-	CURLcode	result;
-	char*		url;
-	char*		post;
-	char*		response = NULL;
-	curl_userdata_t	cud;
+	CURL*			curl;
+	CURLcode		result;
+	char*			url;
+	char*			post;
+	char*			response = NULL;
+	curl_userdata_t		cud;
+	struct curl_slist*	headers = NULL;
 
 	/* Prepare JSON-RPC URL  */
 	url = malloc(strlen(JSON_RPC_URL) + strlen(config_json_rpc_host) + strlen(config_json_rpc_port));
@@ -174,6 +175,10 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, save_response_in_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &cud);
 
+	/* Add proper Content-Type header */
+	headers = curl_slist_append(headers, "Content-Type: application/json");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
 	/* Send JSON-RPC request */
 	result = curl_easy_perform(curl);
 
@@ -188,6 +193,7 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 	free(response);
 	free(post);
 	free(url);
+	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
 
 }
