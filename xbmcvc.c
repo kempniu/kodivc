@@ -589,7 +589,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (access(MODEL_LM, R_OK) == -1 || !access(MODEL_DICT, R_OK) == -1)
+	if (access(MODEL_LM, R_OK) == -1 || access(MODEL_DICT, R_OK) == -1)
 	{
 		printf("xbmcvc language model not found. Please check if the following files are installed and readable:\n");
 		printf("  %s\n  %s\n", MODEL_LM, MODEL_DICT);
