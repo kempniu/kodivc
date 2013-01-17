@@ -134,6 +134,7 @@ save_response_in_memory(const char *ptr, const size_t size, const size_t nmemb, 
 	cud->dst_s += size * nmemb;
 	/* Null-terminate response for easier handling */
 	*(*cud->dst + cud->dst_s) = '\0';
+	return size * nmemb;
 }
 
 void
