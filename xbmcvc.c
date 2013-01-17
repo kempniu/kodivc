@@ -198,6 +198,52 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 
 }
 
+int
+get_json_rpc_response_int(const char *method, const char *params, const char *param)
+{
+
+	char*	response = NULL;
+	char*	result;
+	char*	param_search = NULL;
+	char*	param_string;
+	char	param_value[4];
+	int	i = 0;
+	int	retval = -1;
+
+	send_json_rpc_request(method, params, &response);
+	if (!response)
+		return -1;
+
+	result = strstr(response, "\"result\":");
+	if (result)
+	{
+		result += strlen("\"result\":") + 1;
+		param_search = malloc(strlen(param) + 4);
+		sprintf(param_search, "\"%s\":", param);
+		param_string = strstr(result, param_search);
+		if (param_string)
+		{
+			memset(param_value, 0, sizeof(param_value));
+			param_string += strlen(param) + 3;
+			while(i < sizeof(param_value) && *param_string >= '0' && *param_string <= '9')
+			{
+				param_value[i] = *param_string;
+				param_string++;
+				i++;
+			}
+			if (i == 0)
+				retval = -1;
+			else
+				retval = atoi(param_value);
+		}
+		free(param_search);
+	}
+	free(response);
+
+	return retval;
+
+}
+
 void
 append_param(char **current, char *append)
 {
