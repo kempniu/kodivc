@@ -58,6 +58,10 @@
 #define JSON_RPC_URL			"http://%s:%s/jsonrpc"
 #define JSON_RPC_POST			"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"id\":1}"
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
+#define XBMC_VERSION_EDEN		11
+#define XBMC_VERSION_FRODO		12
+#define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
+#define XBMC_VERSION_MAX		XBMC_VERSION_FRODO
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
@@ -541,7 +545,7 @@ register_action(char* word, char* method, char* params, const char* req[], int r
 }
 
 void
-initialize_actions(void)
+initialize_actions(int xbmc_version)
 {
 
 	/* General actions */
@@ -556,21 +560,38 @@ initialize_actions(void)
 	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
 	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1);
 
-	/* Player actions */
-	register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
-	register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
-	register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
-	register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
-	register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 1);
-	register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
-	register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
-	register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
-
 	/* Repeating actions */
 	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0, 0);
 	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0, 0);
 	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0);
 	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
+
+	switch(xbmc_version)
+	{
+
+		case XBMC_VERSION_EDEN:
+			register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
+			register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+			register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+			register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
+			register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 1);
+			register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
+			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
+			break;
+
+		case XBMC_VERSION_FRODO:
+			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
+			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
+			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);
+			register_action("PREVIOUS", "Player.GoTo", "\"to\":\"previous\"", NULL, 0, 1, 1, 0);
+			register_action("REPEAT", "Player.SetRepeat", "\"repeat\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 1);
+			register_action("SHUFFLE", "Player.SetShuffle", "\"shuffle\":true", NULL, 0, 1, 1, 0);
+			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0);
+			break;
+
+	}
 
 }
 
@@ -593,6 +614,7 @@ int
 main(int argc, char *argv[])
 {
 
+	int		xbmc_version;
 	int		n;
 	char		hyp_test[255];
 	cmd_ln_t*	config;
@@ -619,10 +641,33 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* Setup action database and parse command line arguments */
+	/* Parse command line options */
 	printf("Initializing, please wait...\n");
-	initialize_actions();
 	parse_options(argc, argv);
+
+	/* Check XBMC version */
+	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
+
+	if (xbmc_version == -1)
+	{
+		printf("Unable to determine XBMC version running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
+		free(config_json_rpc_host);
+		free(config_json_rpc_port);
+		free(config_alsa_device);
+		exit(1);
+	}
+
+	if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
+	{
+		printf("XBMC version %d, which is running at %s:%s, is unsupported - aborting\n", xbmc_version, config_json_rpc_host, config_json_rpc_port);
+		free(config_json_rpc_host);
+		free(config_json_rpc_port);
+		free(config_alsa_device);
+		exit(1);
+	}
+
+	/* Setup action database */
+	initialize_actions(xbmc_version);
 
 	if (config_test_mode)
 	{
