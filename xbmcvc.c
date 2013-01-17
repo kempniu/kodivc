@@ -337,7 +337,8 @@ perform_actions(const char *hyp)
 								/* Fill player ID if action needs it */
 								if (action->needs_player_id)
 								{
-									action_queued->params = malloc(strlen("\"playerid\":") + 2); // player ID can be max 1 char
+									/* Player ID can be max 1 char */
+									action_queued->params = malloc(strlen("\"playerid\":") + 2);
 									sprintf(action_queued->params, "\"playerid\":%d", player_id);
 								}
 
