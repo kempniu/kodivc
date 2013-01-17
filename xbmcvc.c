@@ -207,13 +207,13 @@ int
 get_json_rpc_response_int(const char *method, const char *params, const char *param)
 {
 
-	char*	response = NULL;
-	char*	result;
-	char*	param_search = NULL;
-	char*	param_string;
-	char	param_value[4];
-	int	i = 0;
-	int	retval = -1;
+	char*		response = NULL;
+	char*		result;
+	char*		param_search = NULL;
+	char*		param_string;
+	char		param_value[4];
+	unsigned int	i = 0;
+	int		retval = -1;
 
 	send_json_rpc_request(method, params, &response);
 	if (!response)
