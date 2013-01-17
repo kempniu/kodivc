@@ -271,41 +271,18 @@ perform_actions(const char *hyp)
 	int		ls = 0;
 	int		len;
 	int		matched = 0;
+	int		player_id;
 	action_t*	action;
 	action_t*	action_queued;
 	action_t*	queue[MAX_ACTIONS];
 	char*		action_string;
 	char*		response = NULL;
-	char*		player_id_offset = NULL;
-	char*		player_id = NULL;
 	char*		params_fmt;
 	char*		param;
 	int		expect_arg = 0;
 
 	/* Get player ID via JSON-RPC */
-	send_json_rpc_request("Player.GetActivePlayers", NULL, &response);
-
-	/* XBMC did not respond - its webserver is probably not enabled */
-	if (!response)
-	{
-		printf("ERROR: JSON-RPC query not answered - is XBMC's webserver turned on?\n");
-		return;
-	}
-
-	player_id_offset = strstr(response, "\"playerid\":");
-	if (player_id_offset)
-	{
-		/* Put response content after '"playerid":' in player_id */
-		player_id = strdup(player_id_offset + 11);
-		/* Increment iterator until a non-digit character is found in player_id */
-		while (*(player_id + i) >= '0' && *(player_id + i) <= '9')
-			i++;
-		/* Insert null byte after last digit to get a string containing player ID */
-		*(player_id + i) = '\0';
-	}
-
-	/* Reset iterator */
-	i = 0;
+	player_id = get_json_rpc_response_int("Player.GetActivePlayers", NULL, "playerid");
 
 	/* Prepare action queue from words in hypothesis */
 	do { 
@@ -333,7 +310,7 @@ perform_actions(const char *hyp)
 					if (strcmp(action->word, action_string) == 0)
 					{
 						/* Ignore action if it requires a player ID and we don't have a player ID */
-						if ( (action->needs_player_id && player_id) || !action->needs_player_id )
+						if ( (action->needs_player_id && player_id != -1) || !action->needs_player_id )
 						{
 							/* Is this a repeating action? */
 							if (action->repeats > 1)
@@ -355,10 +332,8 @@ perform_actions(const char *hyp)
 								/* Fill player ID if action needs it */
 								if (action->needs_player_id)
 								{
-									params_fmt = strdup("\"playerid\":%s");
-									action_queued->params = malloc(strlen(params_fmt) + strlen(player_id));
-									sprintf(action_queued->params, params_fmt, player_id);
-									free(params_fmt);
+									action_queued->params = malloc(strlen("\"playerid\":") + 2); // player ID can be max 1 char
+									sprintf(action_queued->params, "\"playerid\":%d", player_id);
 								}
 
 								/* Fill action params if needed */
@@ -444,7 +419,6 @@ perform_actions(const char *hyp)
 	}
 
 	/* Cleanup */
-	free(player_id);
 	free(response);
 
 }
