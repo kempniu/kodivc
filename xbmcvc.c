@@ -496,6 +496,14 @@ parse_options(int argc, char *argv[])
 }
 
 void
+cleanup_options(void)
+{
+	free(config_json_rpc_host);
+	free(config_json_rpc_port);
+	free(config_alsa_device);
+}
+
+void
 set_exit_flag(int signal)
 {
 	exit_flag = 1;
@@ -651,18 +659,14 @@ main(int argc, char *argv[])
 	if (xbmc_version == -1)
 	{
 		printf("Unable to determine XBMC version running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
-		free(config_json_rpc_host);
-		free(config_json_rpc_port);
-		free(config_alsa_device);
+		cleanup_options();
 		exit(1);
 	}
 
 	if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
 	{
 		printf("XBMC version %d, which is running at %s:%s, is unsupported - aborting\n", xbmc_version, config_json_rpc_host, config_json_rpc_port);
-		free(config_json_rpc_host);
-		free(config_json_rpc_port);
-		free(config_alsa_device);
+		cleanup_options();
 		exit(1);
 	}
 
@@ -815,10 +819,7 @@ main(int argc, char *argv[])
 	}
 
 	cleanup_actions();
-
-	free(config_json_rpc_host);
-	free(config_json_rpc_port);
-	free(config_alsa_device);
+	cleanup_options();
 
 	return 0;
 
