@@ -112,7 +112,7 @@ volatile int	exit_flag = 0;
 /*---------------------------------------------------------------------------*/
 
 int
-in_array(const char* haystack[], int haystack_size, char *needle)
+in_array(const char* haystack[], const int haystack_size, const char *needle)
 {
 	int found = 0;
 	int i = 0;
@@ -126,7 +126,7 @@ in_array(const char* haystack[], int haystack_size, char *needle)
 
 /* CURL callback for saving HTTP response to a pointer passed via userdata */
 size_t
-save_response_in_memory(char *ptr, size_t size, size_t nmemb, void *userdata)
+save_response_in_memory(const char *ptr, const size_t size, const size_t nmemb, void *userdata)
 {
 	curl_userdata_t *cud = (curl_userdata_t *) userdata;
 	*cud->dst = realloc(*cud->dst, cud->dst_s + (size * nmemb) + 1);
@@ -249,7 +249,7 @@ get_json_rpc_response_int(const char *method, const char *params, const char *pa
 }
 
 void
-append_param(char **current, char *append)
+append_param(char **current, const char *append)
 {
 	if (*current)
 	{
@@ -510,7 +510,7 @@ set_exit_flag(int signal)
 }
 
 void
-register_action(char* word, char* method, char* params, const char* req[], int req_size, int repeats, int needs_player_id, int dynamic_params)
+register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int dynamic_params)
 {
 
 	/* Allocate memory for action structure */
@@ -553,7 +553,7 @@ register_action(char* word, char* method, char* params, const char* req[], int r
 }
 
 void
-initialize_actions(int xbmc_version)
+initialize_actions(const int xbmc_version)
 {
 
 	/* General actions */
