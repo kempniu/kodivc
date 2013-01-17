@@ -17,6 +17,7 @@ Installation
 ------------
 
     git clone https://github.com/kempniu/xbmcvc
+    cd xbmcvc
     make
     make install
 
@@ -26,7 +27,15 @@ After performing the above steps, you should be able to run the program by execu
 
 __NOTE:__ the user running _xbmcvc_ should be allowed to access your sound card. On the Gentoo distribution, for instance, this is achieved by adding the user to the _audio_ group.
 
-_xbmcvc_ uses JSON-RPC via HTTP for passing commands to XBMC. In order for this to work, you need to go to the network settings page in XBMC (_System_ -> _Settings_ -> _Network_ -> _Services_) and turn _Allow control of XBMC via HTTP_ on.
+_xbmcvc_ uses JSON-RPC via HTTP for passing commands to XBMC. In order for this to work, you need to go to the proper settings page in XBMC and turn _Allow control of XBMC via HTTP_ on:
+
+* in Eden, you'll find it under _System_ -> _Settings_ -> _Network_ -> _Services_
+* in Frodo, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Webserver_
+
+If you want to control your XBMC instance from another machine, make sure you also turn _Allow programs on other systems to control XBMC_ on:
+
+* in Eden, you'll find it under _System_ -> _Settings_ -> _Network_ -> _Services_
+* in Frodo, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Remote control_
 
 Usage
 -----
