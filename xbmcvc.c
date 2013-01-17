@@ -2,7 +2,7 @@
  *
  * xbmcvc - a program for controlling XBMC with simple voice commands
  *
- * Copyright (C) Michal Kepien, 2012.
+ * Copyright (C) Michal Kepien, 2012-2013.
  *
  * The listening code is heavily based on the sample continous listening
  * program (continous.c) provided along with pocketsphinx.
