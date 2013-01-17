@@ -177,6 +177,7 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_POST, 1);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, save_response_in_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &cud);
 
