@@ -625,7 +625,6 @@ main(int argc, char *argv[])
 {
 
 	int		xbmc_version;
-	int		n;
 	char		hyp_test[255];
 	cmd_ln_t*	config;
 	ps_decoder_t*	ps;
