@@ -111,6 +111,87 @@ volatile int	exit_flag = 0;
 
 /*---------------------------------------------------------------------------*/
 
+void
+set_exit_flag(int signal)
+{
+	exit_flag = 1;
+}
+
+void
+cleanup_options(void)
+{
+	free(config_json_rpc_host);
+	free(config_json_rpc_port);
+	free(config_alsa_device);
+}
+
+void
+parse_options(int argc, char *argv[])
+{
+
+	int option;
+	int quit = 0;
+
+	/* Initialize default values */
+	config_json_rpc_host = malloc(strlen(JSON_RPC_DEFAULT_HOST) + 1);
+	config_json_rpc_port = malloc(6);
+	config_alsa_device = NULL;
+
+	sprintf(config_json_rpc_host, "%s", JSON_RPC_DEFAULT_HOST);
+	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
+
+	/* Process command line options */
+	while ((option = getopt(argc, argv, "H:P:D:Vth")) != -1 && !quit)
+	{
+		switch(option)
+		{
+
+			/* XBMC host */
+			case 'H':
+				config_json_rpc_host = realloc(config_json_rpc_host, strlen(optarg) + 1);
+				sprintf(config_json_rpc_host, "%s", optarg);
+				break;
+
+			/* XBMC port */
+			case 'P':
+				snprintf(config_json_rpc_port, 6, "%s", optarg);
+				break;
+
+			/* ALSA capture device */
+			case 'D':
+				config_alsa_device = realloc(config_alsa_device, strlen(optarg) + 1);
+				sprintf(config_alsa_device, "%s", optarg);
+				break;
+
+			/* Test mode */
+			case 't':
+				config_test_mode = 1;
+				break;
+				
+			/* Version information */
+			case 'V':
+				printf("xbmcvc " VERSION " (Git: " GITVERSION ")\n");
+				quit = 1;
+				break;
+
+			/* Help or unknown option */
+			case 'h':
+			default:
+				printf(USAGE_MESSAGE);
+				quit = 1;
+				break;
+
+		}
+	}
+
+	if (quit)
+	{
+		cleanup_options();
+		exit(0);
+	}
+
+}
+
 int
 in_array(const char* haystack[], const int haystack_size, const char *needle)
 {
@@ -122,6 +203,22 @@ in_array(const char* haystack[], const int haystack_size, const char *needle)
 			found = 1;
 	}
 	return found;
+}
+
+void
+append_param(char **current, const char *append)
+{
+	if (*current)
+	{
+		*current = realloc(*current, strlen(*current) + strlen(append) + 2);
+		strcat(*current, ",");
+	}
+	else
+	{
+		*current = malloc(strlen(append) + 1);
+		**current = '\0';
+	}
+	strcat(*current, append);
 }
 
 /* CURL callback for saving HTTP response to a pointer passed via userdata */
@@ -251,21 +348,113 @@ get_json_rpc_response_int(const char *method, const char *params, const char *pa
 }
 
 void
-append_param(char **current, const char *append)
+register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int needs_argument)
 {
-	if (*current)
+
+	/* Allocate memory for action structure */
+	action_t* a = malloc(sizeof(action_t));
+
+	/* Copy function arguments to structure fields */
+	a->word = strdup(word);
+
+	if (method)
+		a->method = strdup(method);
+	else
+		a->method = NULL;
+
+	if (params)
+		a->params = strdup(params);
+	else
+		a->params = NULL;
+
+	if (req)
 	{
-		*current = realloc(*current, strlen(*current) + strlen(append) + 2);
-		strcat(*current, ",");
+		a->req = calloc(req_size, sizeof(char *));
+		memcpy(a->req, req, req_size * sizeof(char *));
 	}
 	else
 	{
-		*current = malloc(strlen(append) + 1);
-		**current = '\0';
+		a->req = NULL;
 	}
-	strcat(*current, append);
+
+	a->req_size = req_size;
+	a->repeats = repeats;
+	a->needs_player_id = needs_player_id;
+	a->needs_argument = needs_argument;
+
+	/* Expand action database */
+	actions = realloc(actions, (actions_count + 1) * sizeof(action_t *));
+	/* Add action to database */
+	actions[actions_count] = a;
+	actions_count++;
+
 }
 
+void
+initialize_actions(const int xbmc_version)
+{
+
+	/* General actions */
+	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0, 0);
+	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0, 0);
+	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0, 0);
+	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0, 0);
+	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0, 0);
+	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0, 0);
+	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0);
+	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0);
+	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
+	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1);
+
+	/* Repeating actions */
+	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0, 0);
+	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0, 0);
+	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0);
+	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
+
+	switch(xbmc_version)
+	{
+
+		case XBMC_VERSION_EDEN:
+			register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
+			register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+			register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+			register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
+			register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size - 1, 1, 1, 1);
+			register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
+			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
+			break;
+
+		case XBMC_VERSION_FRODO:
+			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
+			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
+			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);
+			register_action("PREVIOUS", "Player.GoTo", "\"to\":\"previous\"", NULL, 0, 1, 1, 0);
+			register_action("REPEAT", "Player.SetRepeat", "\"repeat\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 0);
+			register_action("SHUFFLE", "Player.SetShuffle", "\"shuffle\":true", NULL, 0, 1, 1, 0);
+			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0);
+			break;
+
+	}
+
+}
+
+void
+cleanup_actions()
+{
+	int i;
+	for (i=0; i<actions_count; i++)
+	{
+		free(actions[i]->word);
+		free(actions[i]->method);
+		free(actions[i]->params);
+		free(actions[i]->req);
+		free(actions[i]);
+	}
+	free(actions);
+}
 
 void
 perform_actions(const char *hyp)
@@ -462,196 +651,6 @@ perform_actions(const char *hyp)
 	/* Cleanup */
 	free(response);
 
-}
-
-void
-cleanup_options(void)
-{
-	free(config_json_rpc_host);
-	free(config_json_rpc_port);
-	free(config_alsa_device);
-}
-
-void
-parse_options(int argc, char *argv[])
-{
-
-	int option;
-	int quit = 0;
-
-	/* Initialize default values */
-	config_json_rpc_host = malloc(strlen(JSON_RPC_DEFAULT_HOST) + 1);
-	config_json_rpc_port = malloc(6);
-	config_alsa_device = NULL;
-
-	sprintf(config_json_rpc_host, "%s", JSON_RPC_DEFAULT_HOST);
-	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
-
-	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:Vth")) != -1 && !quit)
-	{
-		switch(option)
-		{
-
-			/* XBMC host */
-			case 'H':
-				config_json_rpc_host = realloc(config_json_rpc_host, strlen(optarg) + 1);
-				sprintf(config_json_rpc_host, "%s", optarg);
-				break;
-
-			/* XBMC port */
-			case 'P':
-				snprintf(config_json_rpc_port, 6, "%s", optarg);
-				break;
-
-			/* ALSA capture device */
-			case 'D':
-				config_alsa_device = realloc(config_alsa_device, strlen(optarg) + 1);
-				sprintf(config_alsa_device, "%s", optarg);
-				break;
-
-			/* Test mode */
-			case 't':
-				config_test_mode = 1;
-				break;
-				
-			/* Version information */
-			case 'V':
-				printf("xbmcvc " VERSION " (Git: " GITVERSION ")\n");
-				quit = 1;
-				break;
-
-			/* Help or unknown option */
-			case 'h':
-			default:
-				printf(USAGE_MESSAGE);
-				quit = 1;
-				break;
-
-		}
-	}
-
-	if (quit)
-	{
-		cleanup_options();
-		exit(0);
-	}
-
-}
-
-void
-set_exit_flag(int signal)
-{
-	exit_flag = 1;
-}
-
-void
-register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int needs_argument)
-{
-
-	/* Allocate memory for action structure */
-	action_t* a = malloc(sizeof(action_t));
-
-	/* Copy function arguments to structure fields */
-	a->word = strdup(word);
-
-	if (method)
-		a->method = strdup(method);
-	else
-		a->method = NULL;
-
-	if (params)
-		a->params = strdup(params);
-	else
-		a->params = NULL;
-
-	if (req)
-	{
-		a->req = calloc(req_size, sizeof(char *));
-		memcpy(a->req, req, req_size * sizeof(char *));
-	}
-	else
-	{
-		a->req = NULL;
-	}
-
-	a->req_size = req_size;
-	a->repeats = repeats;
-	a->needs_player_id = needs_player_id;
-	a->needs_argument = needs_argument;
-
-	/* Expand action database */
-	actions = realloc(actions, (actions_count + 1) * sizeof(action_t *));
-	/* Add action to database */
-	actions[actions_count] = a;
-	actions_count++;
-
-}
-
-void
-initialize_actions(const int xbmc_version)
-{
-
-	/* General actions */
-	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0, 0);
-	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0, 0);
-	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0, 0);
-	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0, 0);
-	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0, 0);
-	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0, 0);
-	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0);
-	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0);
-	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
-	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1);
-
-	/* Repeating actions */
-	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0, 0);
-	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0, 0);
-	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0);
-	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
-
-	switch(xbmc_version)
-	{
-
-		case XBMC_VERSION_EDEN:
-			register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
-			register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
-			register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
-			register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
-			register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size - 1, 1, 1, 1);
-			register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
-			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
-			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
-			break;
-
-		case XBMC_VERSION_FRODO:
-			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
-			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
-			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);
-			register_action("PREVIOUS", "Player.GoTo", "\"to\":\"previous\"", NULL, 0, 1, 1, 0);
-			register_action("REPEAT", "Player.SetRepeat", "\"repeat\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 0);
-			register_action("SHUFFLE", "Player.SetShuffle", "\"shuffle\":true", NULL, 0, 1, 1, 0);
-			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
-			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0);
-			break;
-
-	}
-
-}
-
-void
-cleanup_actions()
-{
-	int i;
-	for (i=0; i<actions_count; i++)
-	{
-		free(actions[i]->word);
-		free(actions[i]->method);
-		free(actions[i]->params);
-		free(actions[i]->req);
-		free(actions[i]);
-	}
-	free(actions);
 }
 
 int
