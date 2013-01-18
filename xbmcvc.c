@@ -42,13 +42,13 @@
 /* Constants */
 #define VERSION				"0.2"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H host ] [ -P port ] [ -V ] [ -t ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H host ] [ -P port ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
 					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
 					"    -D device    Name of ALSA device to capture speech from\n" \
-					"    -V           Print version information and exit\n" \
 					"    -t           Enable test mode - enter commands on stdin\n" \
+					"    -V           Print version information and exit\n" \
 					"    -h           Print this help message\n" \
 					"\n"
 
@@ -465,6 +465,14 @@ perform_actions(const char *hyp)
 }
 
 void
+cleanup_options(void)
+{
+	free(config_json_rpc_host);
+	free(config_json_rpc_port);
+	free(config_alsa_device);
+}
+
+void
 parse_options(int argc, char *argv[])
 {
 
@@ -502,16 +510,17 @@ parse_options(int argc, char *argv[])
 				sprintf(config_alsa_device, "%s", optarg);
 				break;
 
-			case 'V':
-				printf("xbmcvc " VERSION " (Git: " GITVERSION ")\n");
-				quit = 1;
-				break;
-
 			/* Test mode */
 			case 't':
 				config_test_mode = 1;
 				break;
 				
+			/* Version information */
+			case 'V':
+				printf("xbmcvc " VERSION " (Git: " GITVERSION ")\n");
+				quit = 1;
+				break;
+
 			/* Help or unknown option */
 			case 'h':
 			default:
@@ -524,20 +533,10 @@ parse_options(int argc, char *argv[])
 
 	if (quit)
 	{
-		free(config_json_rpc_host);
-		free(config_json_rpc_port);
-		free(config_alsa_device);
+		cleanup_options();
 		exit(0);
 	}
 
-}
-
-void
-cleanup_options(void)
-{
-	free(config_json_rpc_host);
-	free(config_json_rpc_port);
-	free(config_alsa_device);
 }
 
 void
@@ -686,8 +685,8 @@ main(int argc, char *argv[])
 	}
 
 	/* Parse command line options */
-	printf("Initializing, please wait...\n");
 	parse_options(argc, argv);
+	printf("Initializing, please wait...\n");
 
 	/* Check XBMC version */
 	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
