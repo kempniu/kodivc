@@ -87,7 +87,6 @@ typedef struct {
 	int		req_size;
 	int		repeats;
 	int		needs_player_id;
-	int		dynamic_params;
 	int		needs_argument;
 } action_t;
 
@@ -348,7 +347,7 @@ perform_actions(const char *hyp)
 								/* Fill action params if needed */
 								if (action->params)
 								{
-									if (action->dynamic_params)
+									if (action->req_size > 0)
 										expect_arg = 1;
 									else
 										append_param(&action_queued->params, action->params);
@@ -548,7 +547,7 @@ set_exit_flag(int signal)
 }
 
 void
-register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int dynamic_params, const int needs_argument)
+register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int needs_argument)
 {
 
 	/* Allocate memory for action structure */
@@ -580,7 +579,6 @@ register_action(const char* word, const char* method, const char* params, const 
 	a->req_size = req_size;
 	a->repeats = repeats;
 	a->needs_player_id = needs_player_id;
-	a->dynamic_params = dynamic_params;
 	a->needs_argument = needs_argument;
 
 	/* Expand action database */
@@ -596,46 +594,46 @@ initialize_actions(const int xbmc_version)
 {
 
 	/* General actions */
-	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0, 0, 0);
-	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0, 0);
-	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0, 0);
-	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1, 1);
+	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0, 0);
+	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0, 0);
+	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0, 0);
+	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0, 0);
+	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0, 0);
+	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0, 0);
+	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0);
+	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0);
+	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
+	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1);
 
 	/* Repeating actions */
-	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0, 0, 0);
-	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0, 0, 0);
-	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0, 0);
-	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0, 0);
+	register_action("TWO", NULL, NULL, repeatable, repeatable_size, 2, 0, 0);
+	register_action("THREE", NULL, NULL, repeatable, repeatable_size, 3, 0, 0);
+	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0);
+	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
 
 	switch(xbmc_version)
 	{
 
 		case XBMC_VERSION_EDEN:
-			register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size - 1, 1, 1, 1, 1);
-			register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0, 0);
+			register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
+			register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+			register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
+			register_action("PREVIOUS", "Player.GoPrevious", NULL, NULL, 0, 1, 1, 0);
+			register_action("REPEAT", "Player.Repeat", "\"state\":\"%s\"", repeat_args, repeat_args_size - 1, 1, 1, 1);
+			register_action("SHUFFLE", "Player.Shuffle", NULL, NULL, 0, 1, 1, 0);
+			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
 			break;
 
 		case XBMC_VERSION_FRODO:
-			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0, 0);
-			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0, 0);
-			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0, 0);
-			register_action("PREVIOUS", "Player.GoTo", "\"to\":\"previous\"", NULL, 0, 1, 1, 0, 0);
-			register_action("REPEAT", "Player.SetRepeat", "\"repeat\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 1, 0);
-			register_action("SHUFFLE", "Player.SetShuffle", "\"shuffle\":true", NULL, 0, 1, 1, 0, 0);
-			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0, 0);
-			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0, 0);
+			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
+			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
+			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);
+			register_action("PREVIOUS", "Player.GoTo", "\"to\":\"previous\"", NULL, 0, 1, 1, 0);
+			register_action("REPEAT", "Player.SetRepeat", "\"repeat\":\"%s\"", repeat_args, repeat_args_size, 1, 1, 0);
+			register_action("SHUFFLE", "Player.SetShuffle", "\"shuffle\":true", NULL, 0, 1, 1, 0);
+			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
+			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0);
 			break;
 
 	}
