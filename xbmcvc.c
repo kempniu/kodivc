@@ -377,13 +377,13 @@ perform_actions(const char *hyp)
 				/* Don't look for an action but rather for an argument to last action;
 				   if the argument is optional, ignore the last entry in argument table 
 			 	   (required => search until [size]; not required => search until [size - 1]) */
-				while (k < queue[j-1]->req_size - (1 - queue[j-1]->param_required) && !matched)
+				while (k < action->req_size - (1 - action->param_required) && !matched)
 				{
 					/* If current word is a valid argument to last action... */
-					if (strstr(queue[j-1]->req[k], param_search))
+					if (strstr(action->req[k], param_search))
 					{
 						/* Get param value for current word */
-						param = strchr(queue[j-1]->req[k], ':') + 1;
+						param = strchr(action->req[k], ':') + 1;
 						/* Generate formatted param string */
 						params_fmt = malloc(strlen(action->params) + strlen(param) + 1);
 						sprintf(params_fmt, action->params, param);
@@ -425,15 +425,15 @@ perform_actions(const char *hyp)
 	if (expect_arg)
 	{
 		/* If the command requires an argument, discard last action */
-		if (queue[j-1]->param_required)
+		if (action->param_required)
 		{
-			printf("WARNING: Action %s requires a parameter, none given - ignoring action\n", queue[j-1]->word);
+			printf("WARNING: Action %s requires a parameter, none given - ignoring action\n", action->word);
 		}
 		else
 		/* If the command also works without an argument, process it with the default argument */
 		{
 			/* Get param value for default action */
-			param = queue[j-1]->req[queue[j-1]->req_size-1];
+			param = action->req[action->req_size-1];
 			/* Generate formatted param string */
 			params_fmt = malloc(strlen(action->params) + strlen(param) + 1);
 			sprintf(params_fmt, action->params, param);
