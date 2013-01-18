@@ -284,6 +284,7 @@ perform_actions(const char *hyp)
 	action_t*	queue[MAX_ACTIONS];
 	char*		action_string;
 	char*		response = NULL;
+	char*		param_search;
 	char*		params_fmt;
 	const char*		param;
 	int		expect_arg = 0;
@@ -370,13 +371,16 @@ perform_actions(const char *hyp)
 			else
 			{
 
+				param_search = malloc(strlen(action_string) + 2);
+				sprintf(param_search, "%s:", action_string);
+
 				/* Don't look for an action but rather for an argument to last action;
 				   if the argument is optional, ignore the last entry in argument table 
 			 	   (required => search until [size]; not required => search until [size - 1]) */
 				while (k < queue[j-1]->req_size - (1 - queue[j-1]->param_required) && !matched)
 				{
 					/* If current word is a valid argument to last action... */
-					if (strstr(queue[j-1]->req[k], action_string))
+					if (strstr(queue[j-1]->req[k], param_search))
 					{
 						/* Get param value for current word */
 						param = strchr(queue[j-1]->req[k], ':') + 1;
@@ -392,6 +396,8 @@ perform_actions(const char *hyp)
 					}
 					k++;
 				}
+
+				free(param_search);
 
 				/* If no valid argument was found, delete last action */
 				if (!matched)
