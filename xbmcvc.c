@@ -88,7 +88,7 @@ typedef struct {
 	int		repeats;
 	int		needs_player_id;
 	int		dynamic_params;
-	int		param_required;
+	int		needs_argument;
 } action_t;
 
 /* Global configuration variables */
@@ -284,7 +284,7 @@ perform_actions(const char *hyp)
 	action_t*	queue[MAX_ACTIONS];
 	char*		action_string;
 	char*		response = NULL;
-	char*		param_search;
+	char*		argument_search;
 	char*		params_fmt;
 	const char*		param;
 	int		expect_arg = 0;
@@ -371,16 +371,16 @@ perform_actions(const char *hyp)
 			else
 			{
 
-				param_search = malloc(strlen(action_string) + 2);
-				sprintf(param_search, "%s:", action_string);
+				argument_search = malloc(strlen(action_string) + 2);
+				sprintf(argument_search, "%s:", action_string);
 
 				/* Don't look for an action but rather for an argument to last action;
 				   if the argument is optional, ignore the last entry in argument table 
 			 	   (required => search until [size]; not required => search until [size - 1]) */
-				while (k < action->req_size - (1 - action->param_required) && !matched)
+				while (k < action->req_size - (1 - action->needs_argument) && !matched)
 				{
 					/* If current word is a valid argument to last action... */
-					if (strstr(action->req[k], param_search))
+					if (strstr(action->req[k], argument_search))
 					{
 						/* Get param value for current word */
 						param = strchr(action->req[k], ':') + 1;
@@ -397,12 +397,12 @@ perform_actions(const char *hyp)
 					k++;
 				}
 
-				free(param_search);
+				free(argument_search);
 
 				/* If no valid argument was found, delete last action */
 				if (!matched)
 				{
-					printf("WARNING: %s is not a valid parameter for %s - interpreting as action\n", action_string, queue[j-1]->word);
+					printf("WARNING: %s is not a valid argument for %s - interpreting as action\n", action_string, queue[j-1]->word);
 					free(queue[j-1]->params);
 					free(queue[j-1]);
 					j--;
@@ -425,9 +425,9 @@ perform_actions(const char *hyp)
 	if (expect_arg)
 	{
 		/* If the command requires an argument, discard last action */
-		if (action->param_required)
+		if (action->needs_argument)
 		{
-			printf("WARNING: Action %s requires a parameter, none given - ignoring action\n", action->word);
+			printf("WARNING: Action %s requires an argument, none given - ignoring action\n", action->word);
 			free(queue[j-1]->params);
 			free(queue[j-1]);
 			j--;
@@ -548,7 +548,7 @@ set_exit_flag(int signal)
 }
 
 void
-register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int dynamic_params, const int param_required)
+register_action(const char* word, const char* method, const char* params, const char* req[], const int req_size, const int repeats, const int needs_player_id, const int dynamic_params, const int needs_argument)
 {
 
 	/* Allocate memory for action structure */
@@ -581,7 +581,7 @@ register_action(const char* word, const char* method, const char* params, const 
 	a->repeats = repeats;
 	a->needs_player_id = needs_player_id;
 	a->dynamic_params = dynamic_params;
-	a->param_required = param_required;
+	a->needs_argument = needs_argument;
 
 	/* Expand action database */
 	actions = realloc(actions, (actions_count + 1) * sizeof(action_t *));
