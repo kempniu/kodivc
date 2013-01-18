@@ -428,6 +428,9 @@ perform_actions(const char *hyp)
 		if (action->param_required)
 		{
 			printf("WARNING: Action %s requires a parameter, none given - ignoring action\n", action->word);
+			free(queue[j-1]->params);
+			free(queue[j-1]);
+			j--;
 		}
 		else
 		/* If the command also works without an argument, process it with the default argument */
