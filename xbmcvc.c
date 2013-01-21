@@ -532,8 +532,9 @@ perform_actions(const char *hyp)
 				/* ...the first command heard is the unlock command, unlock and continue */
 				if (strcmp(COMMAND_UNLOCK, action_string) == 0)
 				{
-					free(action_string);
 					locked = 0;
+					ls = i + 1;
+					free(action_string);
 					continue;
 				}
 				else
