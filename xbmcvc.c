@@ -548,8 +548,8 @@ perform_actions(const char *hyp)
 			/* If we are unlocked and... */
 			else
 			{
-				/* ...the first command heard is the lock command, lock and ignore all further commands */
-				if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0)
+				/* ...the only command heard is the lock command, lock */
+				if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0 && *(hyp + i) == '\0')
 				{
 					locked = 1;
 					send_gui_notification("xbmcvc locked", "Heard " COMMAND_LOCK, "warning");
