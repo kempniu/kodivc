@@ -449,6 +449,7 @@ initialize_actions(void)
 	register_action("FOUR", NULL, NULL, repeatable, repeatable_size, 4, 0, 0);
 	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
 
+	/* Version-dependent actions */
 	switch(xbmc_version)
 	{
 
@@ -464,6 +465,7 @@ initialize_actions(void)
 			break;
 
 		case XBMC_VERSION_FRODO:
+			register_action("CONTEXT", "Input.ContextMenu", NULL, NULL, 0, 1, 0, 0);
 			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
 			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
 			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);
