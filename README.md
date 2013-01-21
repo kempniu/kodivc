@@ -8,7 +8,7 @@ Requirements
 
 To use _xbmcvc_, the following libraries need to be installed on your system:
 
-* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (http://cmusphinx.sourceforge.net/wiki/download/)
+* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (http://cmusphinx.sourceforge.net/wiki/download/); _xbmcvc_ was tested with versions 0.7+
 * _libcurl_ (shipped with cURL, should be present on most systems; if that's not your case, go to http://curl.haxx.se/libcurl/)
 
 For _xbmcvc_ to work, you need an XBMC version which supports JSON-RPC API version 3 or higher, which means any pre-11.0 (pre-Eden) or newer version should work. Older releases (including Dharma) are not supported.
@@ -42,7 +42,11 @@ Usage
 
 At startup, _xbmcvc_ will initialize the speech recognition library and, after successfully self-calibrating to properly tell silence and speech apart, it will start listening to your commands. If you get an error saying _Failed to calibrate voice activity detection_, please check your mixer levels for capturing audio.
 
-_xbmcvc_ recognizes a limited set of commands listed alphabetically in file __model/xbmcvc.vocab__. Just try saying them to the microphone and see what happens - the commands should be pretty self-explanatory.
+By default, _xbmcvc_ locks itself after initializing to prevent accidental usage. Say _"XBMC"_ to unlock. This has to be the first command heard in order to work. To lock _xbmcvc_, say _"OK"_. The locking/unlocking feature can be disabled using the __-l__ command line switch.
+
+_xbmcvc_ recognizes a limited set of commands listed alphabetically in file __model/xbmcvc.vocab__. Just try saying them to the microphone (after unlocking - see above) and see what happens - the commands should be pretty self-explanatory.
+
+Please consult the usage message (run _xbmcvc_ with the __-h__ switch to view it) for command line switches explanation.
 
 Language support
 ----------------
