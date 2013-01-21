@@ -52,18 +52,18 @@
 					"    -h           Print this help message\n" \
 					"\n"
 
-#define MAX_ACTIONS			5
+#define COMMAND_UNLOCK			"X_B_M_C"
+#define COMMAND_LOCK			"OKAY"
 #define JSON_RPC_DEFAULT_HOST		"localhost"
 #define JSON_RPC_DEFAULT_PORT		8080
 #define JSON_RPC_URL			"http://%s:%s/jsonrpc"
 #define JSON_RPC_POST			"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"id\":1}"
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
+#define MAX_ACTIONS			5
 #define XBMC_VERSION_EDEN		11
 #define XBMC_VERSION_FRODO		12
 #define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
 #define XBMC_VERSION_MAX		XBMC_VERSION_FRODO
-#define COMMAND_UNLOCK			"X_B_M_C"
-#define COMMAND_LOCK			"OKAY"
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
