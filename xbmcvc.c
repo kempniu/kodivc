@@ -42,7 +42,7 @@
 /* Constants */
 #define VERSION				"0.2"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H host ] [ -P port ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
 					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
