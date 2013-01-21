@@ -10,6 +10,7 @@
 <s> HOME </s>
 <s> LEFT </s>
 <s> MAX </s>
+<s> MUSIC </s>
 <s> MUTE </s>
 <s> NEXT </s>
 <s> NINETY </s>
@@ -17,11 +18,14 @@
 <s> OKAY </s>
 <s> ONE </s>
 <s> PAUSE </s>
+<s> PICTURES </s>
 <s> PLAY </s>
 <s> PREVIOUS </s>
+<s> PROGRAMS </s>
 <s> REPEAT </s>
 <s> RIGHT </s>
 <s> SELECT </s>
+<s> SETTINGS </s>
 <s> SEVENTY </s>
 <s> SHUFFLE </s>
 <s> SIXTY </s>
@@ -29,10 +33,13 @@
 <s> TEN </s>
 <s> THIRTY </s>
 <s> THREE </s>
+<s> T_V </s>
 <s> TWENTY </s>
 <s> TWO </s>
 <s> UNMUTE </s>
 <s> UNSHUFFLE </s>
 <s> UP </s>
+<s> VIDEOS </s>
 <s> VOLUME </s>
+<s> WEATHER </s>
 <s> X_B_M_C </s>

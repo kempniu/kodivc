@@ -465,7 +465,7 @@ initialize_actions(void)
 			break;
 
 		case XBMC_VERSION_FRODO:
-			register_action("CONTEXT", "Input.ContextMenu", NULL, NULL, 0, 1, 0, 0);
+			/* Player actions */
 			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
 			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
 			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);
@@ -474,6 +474,16 @@ initialize_actions(void)
 			register_action("SHUFFLE", "Player.SetShuffle", "\"shuffle\":true", NULL, 0, 1, 1, 0);
 			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
 			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0);
+			/* Window actions */
+			register_action("MUSIC", "GUI.ActivateWindow", "\"window\":\"music\"", NULL, 0, 1, 0, 0);
+			register_action("PICTURES", "GUI.ActivateWindow", "\"window\":\"pictures\"", NULL, 0, 1, 0, 0);
+			register_action("PROGRAMS", "GUI.ActivateWindow", "\"window\":\"programs\"", NULL, 0, 1, 0, 0);
+			register_action("SETTINGS", "GUI.ActivateWindow", "\"window\":\"settings\"", NULL, 0, 1, 0, 0);
+			register_action("T_V", "GUI.ActivateWindow", "\"window\":\"tv\"", NULL, 0, 1, 0, 0);
+			register_action("VIDEOS", "GUI.ActivateWindow", "\"window\":\"videos\"", NULL, 0, 1, 0, 0);
+			register_action("WEATHER", "GUI.ActivateWindow", "\"window\":\"weather\"", NULL, 0, 1, 0, 0);
+			/* Other actions */
+			register_action("CONTEXT", "Input.ContextMenu", NULL, NULL, 0, 1, 0, 0);
 			break;
 
 	}
