@@ -47,6 +47,7 @@
 					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
 					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
 					"    -D device    Name of ALSA device to capture speech from\n" \
+					"    -n           Disable GUI notifications\n" \
 					"    -t           Enable test mode - enter commands on stdin\n" \
 					"    -V           Print version information and exit\n" \
 					"    -h           Print this help message\n" \
@@ -96,6 +97,7 @@ typedef struct {
 char*		config_json_rpc_host;
 char*		config_json_rpc_port;
 char*		config_alsa_device;
+int		config_notifications = 1;
 int		config_test_mode = 0;
 
 /* Action database */
@@ -147,7 +149,7 @@ parse_options(int argc, char *argv[])
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:Vth")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:D:ntVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -167,6 +169,11 @@ parse_options(int argc, char *argv[])
 			case 'D':
 				config_alsa_device = realloc(config_alsa_device, strlen(optarg) + 1);
 				sprintf(config_alsa_device, "%s", optarg);
+				break;
+
+			/* Notifications */
+			case 'n':
+				config_notifications = 0;
 				break;
 
 			/* Test mode */
@@ -304,6 +311,23 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 	free(url);
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
+
+}
+
+void
+send_gui_notification(const char *title, const char *message, const char *icon)
+{
+
+	const char *format = "\"title\":\"%s\",\"message\":\"%s\",\"image\":\"%s\"";
+	char *params;
+
+	if (xbmc_version >= XBMC_VERSION_FRODO && config_notifications)
+	{
+		params = malloc(strlen(format) + strlen(title) + strlen(message) + strlen(icon));
+		sprintf(params, format, title, message, icon);
+		send_json_rpc_request("GUI.ShowNotification", params, NULL);
+		free(params);
+	}
 
 }
 
@@ -471,6 +495,7 @@ perform_actions(const char *hyp)
 	int		k = 0;
 	int		ls = 0;
 	int		len;
+	int		notification_sent = 0;
 	int		matched = 0;
 	int		player_id;
 	action_t*	action;
@@ -519,12 +544,23 @@ perform_actions(const char *hyp)
 					break;
 				}
 			}
-			/* If we are unlocked and the first command heard is the lock command, lock and ignore all further commands */
-			else if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0)
+			/* If we are unlocked and... */
+			else
 			{
-				free(action_string);
-				locked = 1;
-				break;
+				/* ...the first command heard is the lock command, lock and ignore all further commands */
+				if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0)
+				{
+					locked = 1;
+					send_gui_notification("xbmcvc locked", "Heard " COMMAND_LOCK, "warning");
+					free(action_string);
+					break;
+				}
+				/* ...the first command heard is not the unlock command, display notification */
+				else if (!notification_sent)
+				{
+					send_gui_notification("Voice command heard", hyp + ls, "info");
+					notification_sent = 1;
+				}
 			}
 
 			/* Check if we're not expecting an argument to last action */
