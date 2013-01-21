@@ -110,6 +110,7 @@ int		volume_args_size = ARRAY_SIZE(volume_args);
 
 /* Miscellaneous variables */
 int		locked = 1;
+int		xbmc_version;
 
 /* Exit flag */
 volatile int	exit_flag = 0;
@@ -396,7 +397,7 @@ register_action(const char* word, const char* method, const char* params, const 
 }
 
 void
-initialize_actions(const int xbmc_version)
+initialize_actions(void)
 {
 
 	/* General actions */
@@ -688,7 +689,6 @@ int
 main(int argc, char *argv[])
 {
 
-	int		xbmc_version;
 	char		hyp_test[255];
 	cmd_ln_t*	config;
 	ps_decoder_t*	ps;
@@ -736,7 +736,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Setup action database */
-	initialize_actions(xbmc_version);
+	initialize_actions();
 
 	if (config_test_mode)
 	{
