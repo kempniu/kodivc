@@ -14,6 +14,7 @@ MUTE - Main
 NEXT - Main 
 NINETY - Main 
 OFF - Main 
+OKAY - Main 
 ONE - Main 
 PAUSE - Main 
 PLAY - Main 
@@ -34,4 +35,8 @@ UNMUTE - Morpheme: UN MUTE
 UNSHUFFLE - Morpheme: UN SHUFFLE 
 UP - Main 
 VOLUME - Main 
+X. - Main [base] 
+B. - Main [base] 
+M. - Main [base] 
+C. - Main [base] 
 

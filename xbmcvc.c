@@ -62,6 +62,8 @@
 #define XBMC_VERSION_FRODO		12
 #define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
 #define XBMC_VERSION_MAX		XBMC_VERSION_FRODO
+#define COMMAND_UNLOCK			"X_B_M_C"
+#define COMMAND_LOCK			"OKAY"
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
@@ -105,6 +107,9 @@ const char*	repeat_args[] = { "ALL:all", "ONE:one", "OFF:off", "cycle" };
 int		repeat_args_size = ARRAY_SIZE(repeat_args);
 const char*	volume_args[] = { "TEN:10", "TWENTY:20", "THIRTY:30", "FOURTY:40", "FIFTY:50", "SIXTY:60", "SEVENTY:70", "EIGHTY:80", "NINETY:90", "MAX:100" };
 int		volume_args_size = ARRAY_SIZE(volume_args);
+
+/* Miscellaneous variables */
+int		locked = 1;
 
 /* Exit flag */
 volatile int	exit_flag = 0;
@@ -494,6 +499,32 @@ perform_actions(const char *hyp)
 			/* Reset loop iterator and end flag */
 			k = 0;
 			matched = 0;
+
+			/* If we are locked and... */
+			if (locked)
+			{
+				/* ...the first command heard is the unlock command, unlock and continue */
+				if (strcmp(COMMAND_UNLOCK, action_string) == 0)
+				{
+					free(action_string);
+					locked = 0;
+					continue;
+				}
+				else
+				{
+					/* ...the first command heard is not the unlock command, warn and ignore all commands */
+					printf("WARNING: xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock\n");
+					free(action_string);
+					break;
+				}
+			}
+			/* If we are unlocked and the first command heard is the lock command, lock and ignore all further commands */
+			else if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0)
+			{
+				free(action_string);
+				locked = 1;
+				break;
+			}
 
 			/* Check if we're not expecting an argument to last action */
 			if (!expect_arg)
