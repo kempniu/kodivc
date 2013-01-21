@@ -42,11 +42,12 @@
 /* Constants */
 #define VERSION				"0.2"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -l ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
 					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
 					"    -D device    Name of ALSA device to capture speech from\n" \
+					"    -l           Disable locking/unlocking\n" \
 					"    -n           Disable GUI notifications\n" \
 					"    -t           Enable test mode - enter commands on stdin\n" \
 					"    -V           Print version information and exit\n" \
@@ -97,6 +98,7 @@ typedef struct {
 char*		config_json_rpc_host;
 char*		config_json_rpc_port;
 char*		config_alsa_device;
+int		config_locking = 1;
 int		config_notifications = 1;
 int		config_test_mode = 0;
 
@@ -149,7 +151,7 @@ parse_options(int argc, char *argv[])
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:ntVh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:D:lntVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -169,6 +171,11 @@ parse_options(int argc, char *argv[])
 			case 'D':
 				config_alsa_device = realloc(config_alsa_device, strlen(optarg) + 1);
 				sprintf(config_alsa_device, "%s", optarg);
+				break;
+
+			/* Locking */
+			case 'l':
+				config_locking = 0;
 				break;
 
 			/* Notifications */
@@ -526,42 +533,42 @@ perform_actions(const char *hyp)
 			k = 0;
 			matched = 0;
 
-			/* If we are locked and... */
-			if (locked)
+			if (config_locking)
 			{
-				/* ...the first command heard is the unlock command, unlock and continue */
-				if (strcmp(COMMAND_UNLOCK, action_string) == 0)
+				/* If we are locked and... */
+				if (locked)
 				{
-					locked = 0;
-					ls = i + 1;
-					free(action_string);
-					continue;
+					/* ...the first command heard is the unlock command, unlock and continue */
+					if (strcmp(COMMAND_UNLOCK, action_string) == 0)
+					{
+						locked = 0;
+						ls = i + 1;
+						free(action_string);
+						continue;
+					}
+					else
+					{
+						/* ...the first command heard is not the unlock command, warn and ignore all commands */
+						printf("WARNING: xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock\n");
+						free(action_string);
+						break;
+					}
 				}
-				else
-				{
-					/* ...the first command heard is not the unlock command, warn and ignore all commands */
-					printf("WARNING: xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock\n");
-					free(action_string);
-					break;
-				}
-			}
-			/* If we are unlocked and... */
-			else
-			{
-				/* ...the only command heard is the lock command, lock */
-				if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0 && *(hyp + i) == '\0')
+				/* If we are unlocked and the only command heard is the lock command, lock */
+				else if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0 && *(hyp + i) == '\0')
 				{
 					locked = 1;
 					send_gui_notification("xbmcvc locked", "Heard " COMMAND_LOCK, "warning");
 					free(action_string);
 					break;
 				}
-				/* ...the first command heard is not the unlock command, display notification */
-				else if (!notification_sent)
-				{
-					send_gui_notification("Voice command heard", hyp + ls, "info");
-					notification_sent = 1;
-				}
+			}
+
+			/* Send GUI notification with the commands heard */
+			if (!notification_sent && ((config_locking && !locked) || !config_locking))
+			{
+				send_gui_notification("Voice command heard", hyp + ls, "info");
+				notification_sent = 1;
 			}
 
 			/* Check if we're not expecting an argument to last action */
