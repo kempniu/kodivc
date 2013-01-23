@@ -1,0 +1,25 @@
+Source: xbmcvc
+Section: utils
+Priority: extra
+Maintainer: Michał Kępień <launchpad@kempniu.pl>
+Build-Depends:	quilt (>= 0.46-7~),
+		debhelper (>= 7),
+		debhelper (>= 7.0.50~),
+		libsphinxbase-dev (>= 0.6),
+		libsphinxbase1 (>= 0.6),
+		libpocketsphinx1 (>= 0.6),
+		libpocketsphinx-dev (>= 0.6),
+		libcurl4-openssl-dev (>= 7.19)
+Standards-Version: 3.8.4
+Homepage: http://github.com/kempniu/xbmcvc
+
+Package: xbmcvc
+Architecture: any
+Depends:	${shlibs:Depends},
+		${misc:Depends},
+		libsphinxbase1 (>= 0.6),
+		libpocketsphinx1 (>= 0.6),
+		pocketsphinx-hmm-en-hub4wsj (>= 0.6),
+		libcurl3 (>= 7.19)
+Description: A program for controlling XBMC with simple voice commands
+
