@@ -257,7 +257,7 @@ save_response_in_memory(const char *ptr, const size_t size, const size_t nmemb, 
 	return size * nmemb;
 }
 
-void
+int
 send_json_rpc_request(const char *method, const char *params, char **dst)
 {
 
@@ -322,6 +322,8 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
 
+	return (int) result;
+
 }
 
 void
@@ -353,9 +355,8 @@ get_json_rpc_response_int(const char *method, const char *params, const char *pa
 	unsigned int	i = 0;
 	int		retval = -1;
 
-	send_json_rpc_request(method, params, &response);
-	if (!response)
-		return -1;
+	if (send_json_rpc_request(method, params, &response) != 0 || !response)
+		return -2;
 
 	result = strstr(response, "\"result\":");
 	if (result)
@@ -783,14 +784,19 @@ main(int argc, char *argv[])
 	/* Check XBMC version */
 	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
 
-	if (xbmc_version == -1)
+	if (xbmc_version == -2)
+	{
+		printf("Unable to connect to XBMC running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
+		cleanup_options();
+		exit(1);
+	}
+	else if (xbmc_version == -1)
 	{
 		printf("Unable to determine XBMC version running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
 		cleanup_options();
 		exit(1);
 	}
-
-	if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
+	else if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
 	{
 		printf("XBMC version %d, which is running at %s:%s, is unsupported - aborting\n", xbmc_version, config_json_rpc_host, config_json_rpc_port);
 		cleanup_options();
