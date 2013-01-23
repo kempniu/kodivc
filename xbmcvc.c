@@ -190,7 +190,10 @@ parse_options(int argc, char *argv[])
 				
 			/* Version information */
 			case 'V':
-				printf("xbmcvc " VERSION " (Git: " GITVERSION ")\n");
+				printf("xbmcvc " VERSION);
+				if (strlen(GITVERSION) > 0)
+					printf(" (Git: " GITVERSION ")");
+				printf("\n");
 				quit = 1;
 				break;
 
