@@ -759,10 +759,14 @@ main(int argc, char *argv[])
 	int32		result;
 	const char*	hyp;
 
+	/* Parse command line options */
+	parse_options(argc, argv);
+
 	/* Check if language model files were properly installed */
 	if (access(MODEL_HMM, R_OK) == -1)
 	{
 		printf("Hidden Markov acoustic model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_HMM);
+		cleanup_options();
 		exit(1);
 	}
 
@@ -770,11 +774,10 @@ main(int argc, char *argv[])
 	{
 		printf("xbmcvc language model not found. Please check if the following files are installed and readable:\n");
 		printf("  %s\n  %s\n", MODEL_LM, MODEL_DICT);
+		cleanup_options();
 		exit(1);
 	}
 
-	/* Parse command line options */
-	parse_options(argc, argv);
 	printf("Initializing, please wait...\n");
 
 	/* Check XBMC version */
