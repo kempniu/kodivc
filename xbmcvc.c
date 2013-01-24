@@ -40,7 +40,7 @@
 #include <unistd.h>
 
 /* Constants */
-#define VERSION				"0.3"
+#define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
 					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -l ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \

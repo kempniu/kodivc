@@ -1,3 +1,9 @@
+xbmcvc (0.4-1) lucid; urgency=low
+
+  * New upstream release
+
+ -- Michał Kępień <launchpad@kempniu.pl>  Thu, 24 Jan 2013 08:52:11 +0100
+
 xbmcvc (0.3-7) lucid; urgency=low
 
   * Moved to a new PPA source
