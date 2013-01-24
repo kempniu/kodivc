@@ -8,7 +8,7 @@ Requirements
 
 To use _xbmcvc_, the following libraries need to be installed on your system:
 
-* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (http://cmusphinx.sourceforge.net/wiki/download/); _xbmcvc_ was tested with versions 0.7+
+* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (http://cmusphinx.sourceforge.net/wiki/download/); _xbmcvc_ was tested with versions 0.6+
 * _libcurl_ (shipped with cURL, should be present on most systems; if that's not your case, go to http://curl.haxx.se/libcurl/)
 
 For _xbmcvc_ to work, you need an XBMC version which supports JSON-RPC API version 3 or higher, which means any pre-11.0 (pre-Eden) or newer version should work. Older releases (including Dharma) are not supported.
@@ -16,16 +16,28 @@ For _xbmcvc_ to work, you need an XBMC version which supports JSON-RPC API versi
 Installation
 ------------
 
+### XBMCbuntu / Ubuntu (from PPA) ###
+
+You can install the latest version of _xbmcvc_ by [accessing your XBMC box via SSH](http://wiki.xbmc.org/index.php?title=SSH) and issuing the following commands:
+
+    sudo add-apt-repository -y ppa:dhuggins/cmusphinx
+    sudo add-apt-repository -y ppa:kempniu/xbmcvc
+    sudo perl -pi -e 's/\w+ main$/lucid main/;' /etc/apt/sources.list.d/{dhuggins-cmusphinx,kempniu-xbmcvc}-*.list
+    sudo apt-get update
+    sudo apt-get -y install xbmcvc
+
+The third line is required for now as there are no _pocketsphinx_ packages published for neither Ubuntu 11.10 (which Eden XBMCbuntu is based on) nor Ubuntu 12.04 LTS (which Frodo XBMCbuntu is based on), so you have to force those systems to use packages built for Ubuntu 10.04 LTS.
+
+### Other systems (from Git) ###
+
     git clone https://github.com/kempniu/xbmcvc
     cd xbmcvc
     make
     make install
 
-After performing the above steps, you should be able to run the program by executing:
-
-    xbmcvc
-
 __NOTE:__ the user running _xbmcvc_ should be allowed to access your sound card. On the Gentoo distribution, for instance, this is achieved by adding the user to the _audio_ group.
+
+### Configuring XBMC ###
 
 _xbmcvc_ uses JSON-RPC via HTTP for passing commands to XBMC. In order for this to work, you need to go to the proper settings page in XBMC and turn _Allow control of XBMC via HTTP_ on:
 
@@ -39,6 +51,10 @@ If you want to control your XBMC instance from another machine, make sure you al
 
 Usage
 -----
+
+After a successful installation, you should be able to run _xbmcvc_ by executing:
+
+    xbmcvc
 
 At startup, _xbmcvc_ will initialize the speech recognition library and, after successfully self-calibrating to properly tell silence and speech apart, it will start listening to your commands. If you get an error saying _Failed to calibrate voice activity detection_, please check your mixer levels for capturing audio.
 
