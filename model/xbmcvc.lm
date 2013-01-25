@@ -1,4 +1,4 @@
-Language model created by QuickLM on Mon Jan 21 05:51:56 EST 2013
+Language model created by QuickLM on Fri Jan 25 05:14:59 EST 2013
 Copyright (c) 1996-2010 Carnegie Mellon University and Alexander I. Rudnicky
 
 The model is in standard ARPA format, designed by Doug Paul while he was at MITRE.
@@ -24,8 +24,8 @@ ngram 3=45
 -2.4314 EIGHTY -0.2218
 -2.4314 FIFTY -0.2218
 -2.4314 FIVE -0.2218
+-2.4314 FORTY -0.2218
 -2.4314 FOUR -0.2218
--2.4314 FOURTY -0.2218
 -2.4314 HOME -0.2218
 -2.4314 LEFT -0.2218
 -2.4314 MAX -0.2218
@@ -71,8 +71,8 @@ ngram 3=45
 -1.9542 <s> EIGHTY 0.0000
 -1.9542 <s> FIFTY 0.0000
 -1.9542 <s> FIVE 0.0000
+-1.9542 <s> FORTY 0.0000
 -1.9542 <s> FOUR 0.0000
--1.9542 <s> FOURTY 0.0000
 -1.9542 <s> HOME 0.0000
 -1.9542 <s> LEFT 0.0000
 -1.9542 <s> MAX 0.0000
@@ -116,8 +116,8 @@ ngram 3=45
 -0.3010 EIGHTY </s> -0.3010
 -0.3010 FIFTY </s> -0.3010
 -0.3010 FIVE </s> -0.3010
+-0.3010 FORTY </s> -0.3010
 -0.3010 FOUR </s> -0.3010
--0.3010 FOURTY </s> -0.3010
 -0.3010 HOME </s> -0.3010
 -0.3010 LEFT </s> -0.3010
 -0.3010 MAX </s> -0.3010
@@ -163,8 +163,8 @@ ngram 3=45
 -0.3010 <s> EIGHTY </s>
 -0.3010 <s> FIFTY </s>
 -0.3010 <s> FIVE </s>
+-0.3010 <s> FORTY </s>
 -0.3010 <s> FOUR </s>
--0.3010 <s> FOURTY </s>
 -0.3010 <s> HOME </s>
 -0.3010 <s> LEFT </s>
 -0.3010 <s> MAX </s>
