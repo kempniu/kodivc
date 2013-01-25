@@ -12,5 +12,5 @@ clean:
 install:
 	install -d $(DESTDIR)/usr/bin $(DESTDIR)/$(MODELDIR)/lm/en
 	install $(EXECUTABLE) $(DESTDIR)/usr/bin/$(EXECUTABLE)
-	install -m 0644 -t $(DESTDIR)/$(MODELDIR)/lm/en model/xbmcvc.*
+	install -m 0644 -t $(DESTDIR)/$(MODELDIR)/lm/en model/xbmcvc.{dic,lm}
 
