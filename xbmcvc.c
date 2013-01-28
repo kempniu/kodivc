@@ -618,7 +618,7 @@ perform_actions(const char *hyp)
 					k++;
 				}
 				if (k == actions_count && !matched)
-					printf("WARNING: Unknown action %s\n", action_string);
+					printf("WARNING: Unknown action \"%s\"\n", action_string);
 			}
 			else
 			{
@@ -758,7 +758,7 @@ perform_spelling(const char *hyp)
 				else if (strcmp("SPACE", command) == 0)
 					spelling_buffer[j++] = ' ';
 				else
-					printf("Unknown spelling mode command %s\n", command);
+					printf("WARNING: Unknown spelling mode command \"%s\"\n", command);
 			}
 
 			last_space = i;
