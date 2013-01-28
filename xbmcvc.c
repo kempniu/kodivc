@@ -545,7 +545,8 @@ perform_actions(const char *hyp)
 	player_id = get_json_rpc_response_int("Player.GetActivePlayers", NULL, "playerid");
 
 	/* Prepare action queue from words in hypothesis */
-	do { 
+	do
+	{
 		if (*(hyp + i) == ' ' || *(hyp + i) == '\0')
 		{
 
@@ -671,7 +672,8 @@ perform_actions(const char *hyp)
 			ls = i + 1;
 
 		}
-	} while (*(hyp + i++) != '\0' && j < MAX_ACTIONS);
+	}
+	while (*(hyp + i++) != '\0' && j < MAX_ACTIONS);
 
 	/* Check if the last command accepts an argument which was not given */
 	if (expect_arg)
