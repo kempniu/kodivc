@@ -33,6 +33,7 @@
 #include <pocketsphinx.h>
 
 /* Other headers */
+#include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
 #include <stdio.h>
@@ -62,6 +63,8 @@
 #define JSON_RPC_POST			"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"id\":1}"
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
 #define MAX_ACTIONS			5
+#define SPELLING_BUFFER_SIZE		256
+#define SPELLING_PARAMS_FORMAT		"\"text\":\"%s\",\"done\":%s"
 #define XBMC_VERSION_EDEN		11
 #define XBMC_VERSION_FRODO		12
 #define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
@@ -121,6 +124,7 @@ int		volume_args_size = ARRAY_SIZE(volume_args);
 /* Miscellaneous variables */
 int		locked = 1;
 mode_t		mode = MODE_NORMAL;
+char		spelling_buffer[SPELLING_BUFFER_SIZE];
 int		xbmc_version;
 
 /* Exit flag */
@@ -714,11 +718,64 @@ perform_actions(const char *hyp)
 }
 
 void
+perform_spelling(const char *hyp)
+{
+
+	int i = 0;
+	int j = strlen(spelling_buffer);
+	int last_space = -1;
+	char command[16];
+	
+	do
+	{
+		if (*(hyp + i) == ' ' || *(hyp + i) == '\0')
+		{
+
+			/* If spelling buffer is full, end processing */
+			if (j == SPELLING_BUFFER_SIZE - 1)
+				break;
+
+			/* Single letter or digit - append it to the spelling buffer */
+			if (i - last_space == 2)
+			{
+				spelling_buffer[j++] = tolower(*(hyp + i - 1));
+			}
+			/* Special characters */
+			else if (i - last_space < 16)
+			{
+				memset(command, 0, 16);
+				memcpy(command, hyp + last_space + 1, i - last_space - 1);
+				if (strcmp("BACKSPACE", command) == 0 && j > 0)
+					spelling_buffer[j - 1] = '\0';
+				else if (strcmp("COLON", command) == 0)
+					spelling_buffer[j++] = ':';
+				else if (strcmp("COMMA", command) == 0)
+					spelling_buffer[j++] = ',';
+				else if (strcmp("DOT", command) == 0)
+					spelling_buffer[j++] = '.';
+				else if (strcmp("HYPHEN", command) == 0)
+					spelling_buffer[j++] = '-';
+				else if (strcmp("SPACE", command) == 0)
+					spelling_buffer[j++] = ' ';
+				else
+					printf("Unknown spelling mode command %s\n", command);
+			}
+
+			last_space = i;
+
+		}
+	}
+	while (*(hyp + i++) != '\0');
+
+}
+
+void
 process_hypothesis(const char *hyp)
 {
 
 	char *hyp_new = strdup(hyp);
 	char *next_word;
+	char *params;
 
 	if (config_locking)
 	{
@@ -772,6 +829,7 @@ process_hypothesis(const char *hyp)
 				{
 					/* Send GUI notification and change mode */
 					send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
+					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 					mode = MODE_SPELLING;
 				}
 				else if (strlen(hyp_new) > 0)
@@ -784,12 +842,42 @@ process_hypothesis(const char *hyp)
 				break;
 
 			case MODE_SPELLING:
+				/* Return to normal mode, accepting input */
+				if (strcmp("DONE", hyp_new) == 0)
+				{
+					send_json_rpc_request("Input.ExecuteAction", "\"action\":\"enter\"", NULL);
+					mode = MODE_NORMAL;
+				}
+				/* Return to normal mode, rejecting input */
+				else if (strcmp("BACK", hyp_new) == 0)
+				{
+					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
+					send_json_rpc_request("Input.Back", NULL, NULL);
+					mode = MODE_NORMAL;
+				}
+				/* Clear input */
+				else if (strcmp("CLEAR", hyp_new) == 0)
+				{
+					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
+					params = malloc(strlen(SPELLING_PARAMS_FORMAT) + strlen(spelling_buffer) + 5);
+					sprintf(params, SPELLING_PARAMS_FORMAT, spelling_buffer, "false");
+					send_json_rpc_request("Input.SendText", params, NULL);
+					free(params);
+				}
 				/* Return to normal mode */
-				if (strcmp("NORMAL", hyp_new) == 0)
+				else if (strcmp("NORMAL", hyp_new) == 0)
 				{
 					/* Send GUI notification and change mode */
 					send_gui_notification("Voice recognition mode changed", "Currently working in normal mode", "warning");
 					mode = MODE_NORMAL;
+				}
+				else
+				{
+					perform_spelling(hyp_new);
+					params = malloc(strlen(SPELLING_PARAMS_FORMAT) + strlen(spelling_buffer) + 5);
+					sprintf(params, SPELLING_PARAMS_FORMAT, spelling_buffer, "false");
+					send_json_rpc_request("Input.SendText", params, NULL);
+					free(params);
 				}
 				break;
 
