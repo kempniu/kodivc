@@ -827,10 +827,10 @@ process_hypothesis(const char *hyp)
 				/* Change to spelling mode */
 				if (strcmp("SPELL", hyp_new) == 0)
 				{
-					/* Send GUI notification and change mode */
-					send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
 					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 					mode = MODE_SPELLING;
+					printf("INFO: Changed to spelling mode\n");
+					send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
 				}
 				else if (strlen(hyp_new) > 0)
 				{
@@ -847,6 +847,7 @@ process_hypothesis(const char *hyp)
 				{
 					send_json_rpc_request("Input.ExecuteAction", "\"action\":\"enter\"", NULL);
 					mode = MODE_NORMAL;
+					printf("INFO: Changed to normal mode\n");
 				}
 				/* Return to normal mode, rejecting input */
 				else if (strcmp("BACK", hyp_new) == 0)
@@ -854,6 +855,7 @@ process_hypothesis(const char *hyp)
 					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 					send_json_rpc_request("Input.Back", NULL, NULL);
 					mode = MODE_NORMAL;
+					printf("INFO: Changed to normal mode\n");
 				}
 				/* Clear input */
 				else if (strcmp("CLEAR", hyp_new) == 0)
@@ -870,6 +872,7 @@ process_hypothesis(const char *hyp)
 					/* Send GUI notification and change mode */
 					send_gui_notification("Voice recognition mode changed", "Currently working in normal mode", "warning");
 					mode = MODE_NORMAL;
+					printf("INFO: Changed to normal mode\n");
 				}
 				else
 				{
