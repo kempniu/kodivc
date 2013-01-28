@@ -83,6 +83,7 @@
 enum mode_t {
 	MODE_NORMAL,
 	MODE_SPELLING,
+	MODE_NONE,
 };
 
 /* Structure passed to CURL callback */
@@ -108,6 +109,9 @@ typedef struct {
 	char*		string;
 	int		character;
 } cmap_t;
+
+/* Dictionaries */
+const char*	dictionaries[] = { MODELDIR "/lm/en/xbmcvc/normal.dic", MODELDIR "/lm/en/xbmcvc/spelling.dic" };
 
 /* Global configuration variables */
 char*		config_json_rpc_host;
@@ -1021,6 +1025,7 @@ int
 main(int argc, char *argv[])
 {
 
+	int		i;
 	char		hyp_test[255];
 	cmd_ln_t*	config;
 	ps_decoder_t*	ps;
@@ -1043,12 +1048,21 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (access(MODEL_LM, R_OK) == -1 || access(MODEL_DICT, R_OK) == -1)
+	if (access(MODEL_LM, R_OK) == -1)
 	{
-		printf("xbmcvc language model not found. Please check if the following files are installed and readable:\n");
-		printf("  %s\n  %s\n", MODEL_LM, MODEL_DICT);
+		printf("xbmcvc language model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_LM);
 		cleanup_options();
 		exit(1);
+	}
+
+	for (i=0; i<MODE_NONE; i++)
+	{
+		if (access(dictionaries[i], R_OK) == -1)
+		{
+			printf("xbmcvc dictionary %s not found. Please check your xbmcvc installation.\n", dictionaries[i]);
+			cleanup_options();
+			exit(1);
+		}
 	}
 
 	printf("Initializing, please wait...\n");
