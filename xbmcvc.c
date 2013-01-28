@@ -76,6 +76,12 @@
 #define ARRAY_SIZE(array)		(sizeof(array) / sizeof(array[0]))
 #define DIE(message)			{ printf("Fatal error at %s:%d: %s\n", __FILE__, __LINE__, message); exit(1); }
 
+/* Modes of operation */
+enum mode_t {
+	MODE_NORMAL,
+	MODE_SPELLING,
+};
+
 /* Structure passed to CURL callback */
 typedef struct {
 	char**	dst;	/* destination buffer */
@@ -114,6 +120,7 @@ int		volume_args_size = ARRAY_SIZE(volume_args);
 
 /* Miscellaneous variables */
 int		locked = 1;
+mode_t		mode = MODE_NORMAL;
 int		xbmc_version;
 
 /* Exit flag */
@@ -518,7 +525,6 @@ perform_actions(const char *hyp)
 	int		k = 0;
 	int		ls = 0;
 	int		len;
-	int		notification_sent = 0;
 	int		matched = 0;
 	int		player_id;
 	action_t*	action;
@@ -548,44 +554,6 @@ perform_actions(const char *hyp)
 			/* Reset loop iterator and end flag */
 			k = 0;
 			matched = 0;
-
-			if (config_locking)
-			{
-				/* If we are locked and... */
-				if (locked)
-				{
-					/* ...the first command heard is the unlock command, unlock and continue */
-					if (strcmp(COMMAND_UNLOCK, action_string) == 0)
-					{
-						locked = 0;
-						ls = i + 1;
-						free(action_string);
-						continue;
-					}
-					else
-					{
-						/* ...the first command heard is not the unlock command, warn and ignore all commands */
-						printf("WARNING: xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock\n");
-						free(action_string);
-						break;
-					}
-				}
-				/* If we are unlocked and the only command heard is the lock command, lock */
-				else if (j == 0 && strcmp(COMMAND_LOCK, action_string) == 0 && *(hyp + i) == '\0')
-				{
-					locked = 1;
-					send_gui_notification("xbmcvc locked", "Heard " COMMAND_LOCK, "warning");
-					free(action_string);
-					break;
-				}
-			}
-
-			/* Send GUI notification with the commands heard */
-			if (!notification_sent && ((config_locking && !locked) || !config_locking))
-			{
-				send_gui_notification("Voice command heard", hyp + ls, "info");
-				notification_sent = 1;
-			}
 
 			/* Check if we're not expecting an argument to last action */
 			if (!expect_arg)
@@ -745,6 +713,93 @@ perform_actions(const char *hyp)
 
 }
 
+void
+process_hypothesis(const char *hyp)
+{
+
+	char *hyp_new = strdup(hyp);
+	char *next_word;
+
+	if (config_locking)
+	{
+		/* If we are locked and... */
+		if (locked)
+		{
+			/* ...the first command heard is the unlock command, unlock and continue */
+			if (strstr(hyp, COMMAND_UNLOCK) == hyp)
+			{
+				locked = 0;
+				/* Check if there are further commands after the unlock command */
+				next_word = strchr(hyp, ' ');
+				if (next_word)
+				{
+					/* If yes, remove the unlock command from the hypothesis */
+					free(hyp_new);
+					hyp_new = strdup(next_word + 1);
+				}
+				else
+				{
+					/* If not, send GUI notification confirming unlocking */
+					send_gui_notification("Voice recognition state changed", "Voice recognition is now enabled", "warning");
+					free(hyp_new);
+					hyp_new = strdup("");
+				}
+			}
+			/* ...the first command heard is not the unlock command, warn and ignore all commands */
+			else
+			{
+				printf("WARNING: xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock\n");
+			}
+		}
+		/* If we are unlocked and the only command heard is the lock command, lock */
+		else if (strcmp(COMMAND_LOCK, hyp_new) == 0)
+		{
+			locked = 1;
+			send_gui_notification("Voice recognition state changed", "Voice recognition is now disabled", "warning");
+		}
+	}
+
+	/* If we are unlocked or we don't care about locking... */
+	if ((config_locking && !locked) || !config_locking)
+	{
+		/* Check for mode-changing keywords */
+		switch(mode)
+		{
+
+			case MODE_NORMAL:
+				/* Change to spelling mode */
+				if (strcmp("SPELL", hyp_new) == 0)
+				{
+					/* Send GUI notification and change mode */
+					send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
+					mode = MODE_SPELLING;
+				}
+				else if (strlen(hyp_new) > 0)
+				{
+					/* Send GUI notification with the commands heard */
+					send_gui_notification("Voice command heard", hyp_new, "info");
+					/* Perform requested actions */
+					perform_actions(hyp_new);
+				}
+				break;
+
+			case MODE_SPELLING:
+				/* Return to normal mode */
+				if (strcmp("NORMAL", hyp_new) == 0)
+				{
+					/* Send GUI notification and change mode */
+					send_gui_notification("Voice recognition mode changed", "Currently working in normal mode", "warning");
+					mode = MODE_NORMAL;
+				}
+				break;
+
+		}
+	}
+
+	free(hyp_new);
+
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -819,7 +874,8 @@ main(int argc, char *argv[])
 			{
 				/* Trim newline from hypothesis */
 				*(hyp_test + strlen(hyp_test) - 1) = '\0';
-				perform_actions(hyp_test);
+				/* Process hypothesis */
+				process_hypothesis(hyp_test);
 			}
 		}
 	}
@@ -935,8 +991,8 @@ main(int argc, char *argv[])
 			hyp = ps_get_hyp(ps, NULL, NULL);
 			/* Print hypothesis */
 			printf("Heard: \"%s\"\n", hyp);
-			/* Perform requested actions */
-			perform_actions(hyp);
+			/* Process hypothesis */
+			process_hypothesis(hyp);
 
 			/* Resume recording */
 			if (ad_start_rec(ad) < 0)
