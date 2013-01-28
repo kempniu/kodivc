@@ -10,7 +10,7 @@ clean:
 	rm -f $(EXECUTABLE)
 
 install:
-	install -d $(DESTDIR)/usr/bin $(DESTDIR)/$(MODELDIR)/lm/en
+	install -d $(DESTDIR)/usr/bin $(DESTDIR)/$(MODELDIR)/lm/en/xbmcvc
 	install $(EXECUTABLE) $(DESTDIR)/usr/bin/$(EXECUTABLE)
-	install -m 0644 -t $(DESTDIR)/$(MODELDIR)/lm/en model/xbmcvc.dic model/xbmcvc.lm
+	install -m 0644 -t $(DESTDIR)/$(MODELDIR)/lm/en/xbmcvc model/normal.dic model/spelling.dic model/xbmcvc.lm
 

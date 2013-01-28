@@ -72,8 +72,8 @@
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
-#define MODEL_LM			MODELDIR "/lm/en/xbmcvc.lm"
-#define MODEL_DICT			MODELDIR "/lm/en/xbmcvc.dic"
+#define MODEL_LM			MODELDIR "/lm/en/xbmcvc/xbmcvc.lm"
+#define MODEL_DICT			MODELDIR "/lm/en/xbmcvc/normal.dic"
 
 /* Macros */
 #define ARRAY_SIZE(array)		(sizeof(array) / sizeof(array[0]))
@@ -771,13 +771,14 @@ perform_spelling(const char *hyp)
 
 }
 
-void
+int
 process_hypothesis(const char *hyp)
 {
 
-	char *hyp_new = strdup(hyp);
-	char *next_word;
-	char *params;
+	char*	hyp_new = strdup(hyp);
+	char*	next_word;
+	char*	params;
+	int	retval = 0;
 
 	if (config_locking)
 	{
@@ -833,6 +834,7 @@ process_hypothesis(const char *hyp)
 					{
 						memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 						mode = MODE_SPELLING;
+						retval = 1;
 						printf("INFO: Changed to spelling mode\n");
 						send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
 					}
@@ -856,6 +858,7 @@ process_hypothesis(const char *hyp)
 				{
 					send_json_rpc_request("Input.ExecuteAction", "\"action\":\"enter\"", NULL);
 					mode = MODE_NORMAL;
+					retval = 1;
 					printf("INFO: Changed to normal mode\n");
 				}
 				/* Return to normal mode, rejecting input */
@@ -864,6 +867,7 @@ process_hypothesis(const char *hyp)
 					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 					send_json_rpc_request("Input.Back", NULL, NULL);
 					mode = MODE_NORMAL;
+					retval = 1;
 					printf("INFO: Changed to normal mode\n");
 				}
 				/* Clear input */
@@ -881,6 +885,7 @@ process_hypothesis(const char *hyp)
 					/* Send GUI notification and change mode */
 					send_gui_notification("Voice recognition mode changed", "Currently working in normal mode", "warning");
 					mode = MODE_NORMAL;
+					retval = 1;
 					printf("INFO: Changed to normal mode\n");
 				}
 				else
@@ -897,6 +902,8 @@ process_hypothesis(const char *hyp)
 	}
 
 	free(hyp_new);
+
+	return retval;
 
 }
 
@@ -1092,7 +1099,19 @@ main(int argc, char *argv[])
 			/* Print hypothesis */
 			printf("Heard: \"%s\"\n", hyp);
 			/* Process hypothesis */
-			process_hypothesis(hyp);
+			if (process_hypothesis(hyp) == 1)
+			{
+				/* If process_hypothesis() returns 1, mode of operation has changed - load a proper dictionary */
+				switch(mode)
+				{
+					case MODE_NORMAL:
+						ps_load_dict(ps, MODELDIR "/lm/en/xbmcvc/normal.dic", NULL, NULL);
+						break;
+					case MODE_SPELLING:
+						ps_load_dict(ps, MODELDIR "/lm/en/xbmcvc/spelling.dic", NULL, NULL);
+						break;
+				}
+			}
 
 			/* Resume recording */
 			if (ad_start_rec(ad) < 0)
