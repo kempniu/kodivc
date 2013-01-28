@@ -103,6 +103,12 @@ typedef struct {
 	int		needs_argument;
 } action_t;
 
+/* Command to character mapping */
+typedef struct {
+	char*		string;
+	int		character;
+} cmap_t;
+
 /* Global configuration variables */
 char*		config_json_rpc_host;
 char*		config_json_rpc_port;
@@ -120,6 +126,10 @@ const char*	repeat_args[] = { "ALL:all", "ONE:one", "OFF:off", "cycle" };
 int		repeat_args_size = ARRAY_SIZE(repeat_args);
 const char*	volume_args[] = { "TEN:10", "TWENTY:20", "THIRTY:30", "FOURTY:40", "FIFTY:50", "SIXTY:60", "SEVENTY:70", "EIGHTY:80", "NINETY:90", "MAX:100" };
 int		volume_args_size = ARRAY_SIZE(volume_args);
+
+/* Command to character mapping database */
+cmap_t**	cmap = NULL;
+int		cmap_count = 0;
 
 /* Miscellaneous variables */
 int		locked = 1;
@@ -720,14 +730,117 @@ perform_actions(const char *hyp)
 }
 
 void
+register_cmap(const char *string, const int character)
+{
+
+	cmap_t *mapping = malloc(sizeof(cmap_t));
+	mapping->string = malloc(strlen(string) + 1);
+	strcpy(mapping->string, string);
+	mapping->character = character;
+
+	cmap = realloc(cmap, sizeof(cmap_t *) * (cmap_count + 1));
+	cmap[cmap_count] = mapping;
+	cmap_count++;
+	
+}
+
+void
+initialize_cmap(void)
+{
+
+	/* Letters */
+	register_cmap("ALPHA",		'a');
+	register_cmap("BRAVO",		'b');
+	register_cmap("CHARLIE",	'c');
+	register_cmap("DELTA",		'd');
+	register_cmap("ECHO",		'e');
+	register_cmap("FOXTROT",	'f');
+	register_cmap("GOLF",		'g');
+	register_cmap("HOTEL",		'h');
+	register_cmap("INDIA",		'i');
+	register_cmap("JULIET",		'j');
+	register_cmap("KILO",		'k');
+	register_cmap("LIMA",		'l');
+	register_cmap("MIKE",		'm');
+	register_cmap("NOVEMBER",	'n');
+	register_cmap("OSCAR",		'o');
+	register_cmap("PAPA",		'p');
+	register_cmap("QUEBEC",		'q');
+	register_cmap("ROMEO",		'r');
+	register_cmap("SIERRA",		's');
+	register_cmap("TANGO",		't');
+	register_cmap("UNIFORM",	'u');
+	register_cmap("VICTOR",		'v');
+	register_cmap("WHISKEY",	'w');
+	register_cmap("X_RAY",		'x');
+	register_cmap("YANKEE",		'y');
+	register_cmap("ZULU",		'z');
+
+	/* Digits */
+	register_cmap("ZERO",		'0');
+	register_cmap("ONE",		'1');
+	register_cmap("TWO",		'2');
+	register_cmap("THREE",		'3');
+	register_cmap("FOUR",		'4');
+	register_cmap("FIVE",		'5');
+	register_cmap("SIX",		'6');
+	register_cmap("SEVEN",		'7');
+	register_cmap("EIGHT",		'8');
+	register_cmap("NINE",		'9');
+
+	/* Punctuation */
+	register_cmap("COLON",		':');
+	register_cmap("COMMA",		',');
+	register_cmap("DOT",		'.');
+	register_cmap("HYPHEN",		'-');
+	register_cmap("SPACE",		' ');
+
+}
+
+int
+find_cmap(const char *string)
+{
+
+	int found = 0;
+	int i = 0;
+	int retval = -1;
+
+	while(i < cmap_count && !found)
+	{
+		if (strcmp(cmap[i]->string, string) == 0)
+		{
+			retval = cmap[i]->character;
+			found = 1;
+		}
+		i++;
+	}
+
+	return retval;
+
+}
+
+void
+cleanup_cmap(void)
+{
+	int i;
+	for (i=0; i<cmap_count; i++)
+	{
+		free(cmap[i]->string);
+		free(cmap[i]);
+	}
+	free(cmap);
+}
+
+void
 perform_spelling(const char *hyp)
 {
 
 	int i = 0;
 	int j = strlen(spelling_buffer);
-	int last_space = -1;
-	char command[16];
-	
+	int ls = -1;
+	int character;
+	char *command;
+
 	do
 	{
 		if (*(hyp + i) == ' ' || *(hyp + i) == '\0')
@@ -737,33 +850,30 @@ perform_spelling(const char *hyp)
 			if (j == SPELLING_BUFFER_SIZE - 1)
 				break;
 
-			/* Single letter or digit - append it to the spelling buffer */
-			if (i - last_space == 2)
+			/* Extract a single command */
+			command = malloc(i - ls);
+			memset(command, 0, i - ls);
+			memcpy(command, hyp + ls + 1, i - ls - 1);
+
+			/* BACKSPACE command is treated separately as it doesn't add characters to the buffer */
+			if (strcmp("BACKSPACE", command) == 0 && j > 0)
 			{
-				spelling_buffer[j++] = tolower(*(hyp + i - 1));
+				spelling_buffer[j - 1] = '\0';
 			}
-			/* Special characters */
-			else if (i - last_space < 16)
+			else
 			{
-				memset(command, 0, 16);
-				memcpy(command, hyp + last_space + 1, i - last_space - 1);
-				if (strcmp("BACKSPACE", command) == 0 && j > 0)
-					spelling_buffer[j - 1] = '\0';
-				else if (strcmp("COLON", command) == 0)
-					spelling_buffer[j++] = ':';
-				else if (strcmp("COMMA", command) == 0)
-					spelling_buffer[j++] = ',';
-				else if (strcmp("DOT", command) == 0)
-					spelling_buffer[j++] = '.';
-				else if (strcmp("HYPHEN", command) == 0)
-					spelling_buffer[j++] = '-';
-				else if (strcmp("SPACE", command) == 0)
-					spelling_buffer[j++] = ' ';
-				else
+				/* Try to find a character matching the command */
+				character = find_cmap(command);
+				if (character != -1)
+					/* If the command is valid, append the character mapped to it to the buffer */
+					spelling_buffer[j++] = character;
+				else 
+					/* If the command is invalid, print out a warning */
 					printf("WARNING: Unknown spelling mode command \"%s\"\n", command);
 			}
 
-			last_space = i;
+			ls = i;
+			free(command);
 
 		}
 	}
@@ -967,6 +1077,8 @@ main(int argc, char *argv[])
 
 	/* Setup action database */
 	initialize_actions();
+	/* Setup command to character mapping database */
+	initialize_cmap();
 
 	if (config_test_mode)
 	{
@@ -1127,6 +1239,7 @@ main(int argc, char *argv[])
 	}
 
 	cleanup_actions();
+	cleanup_cmap();
 	cleanup_options();
 
 	return 0;
