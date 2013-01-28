@@ -208,7 +208,7 @@ parse_options(int argc, char *argv[])
 			case 't':
 				config_test_mode = 1;
 				break;
-				
+
 			/* Version information */
 			case 'V':
 				printf("xbmcvc " VERSION);
@@ -741,7 +741,7 @@ register_cmap(const char *string, const int character)
 	cmap = realloc(cmap, sizeof(cmap_t *) * (cmap_count + 1));
 	cmap[cmap_count] = mapping;
 	cmap_count++;
-	
+
 }
 
 void
