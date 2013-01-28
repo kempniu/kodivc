@@ -829,10 +829,17 @@ process_hypothesis(const char *hyp)
 				/* Change to spelling mode */
 				if (strcmp("SPELL", hyp_new) == 0)
 				{
-					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
-					mode = MODE_SPELLING;
-					printf("INFO: Changed to spelling mode\n");
-					send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
+					if (xbmc_version >= XBMC_VERSION_FRODO)
+					{
+						memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
+						mode = MODE_SPELLING;
+						printf("INFO: Changed to spelling mode\n");
+						send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
+					}
+					else
+					{
+						printf("ERROR: Spelling mode not available before Frodo\n");
+					}
 				}
 				else if (strlen(hyp_new) > 0)
 				{
