@@ -139,6 +139,7 @@ int		cmap_count = 0;
 int		locked = 1;
 mode_t		mode = MODE_NORMAL;
 char		spelling_buffer[SPELLING_BUFFER_SIZE];
+int		spelling_case = 0;
 int		xbmc_version;
 
 /* Exit flag */
@@ -868,13 +869,21 @@ perform_spelling(const char *hyp)
 					j--;
 				}
 			}
+			else if (strcmp("LOWER", command) == 0)
+			{
+				spelling_case = 0;
+			}
+			else if (strcmp("UPPER", command) == 0)
+			{
+				spelling_case = 1;
+			}
 			else
 			{
 				/* Try to find a character matching the command */
 				character = find_cmap(command);
 				if (character != -1)
 					/* If the command is valid, append the character mapped to it to the buffer */
-					spelling_buffer[j++] = character;
+					spelling_buffer[j++] = spelling_case ? toupper(character) : character;
 				else if (strlen(command) > 0)
 					/* If the command is invalid, print out a warning */
 					printf("WARNING: Unknown spelling mode command \"%s\"\n", command);
@@ -957,6 +966,7 @@ process_hypothesis(const char *hyp)
 					if (xbmc_version >= XBMC_VERSION_FRODO)
 					{
 						memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
+						spelling_case = 0;
 						mode = MODE_SPELLING;
 						retval = 1;
 						printf("INFO: Changed to spelling mode\n");
