@@ -110,8 +110,8 @@ typedef struct {
 	int		character;
 } cmap_t;
 
-/* Dictionaries */
-const char*	dictionaries[] = { MODELDIR "/lm/en/xbmcvc/normal.dic", MODELDIR "/lm/en/xbmcvc/spelling.dic" };
+/* Names of modes of operation */
+const char*	modes[] = { "normal", "spelling" };
 
 /* Global configuration variables */
 char*		config_json_rpc_host;
@@ -903,6 +903,7 @@ process_hypothesis(const char *hyp)
 			if (strstr(hyp, COMMAND_UNLOCK) == hyp)
 			{
 				locked = 0;
+				printf("INFO: xbmcvc is now unlocked\n");
 				/* Check if there are further commands after the unlock command */
 				next_word = strchr(hyp, ' ');
 				if (next_word)
@@ -914,7 +915,11 @@ process_hypothesis(const char *hyp)
 				else
 				{
 					/* If not, send GUI notification confirming unlocking */
-					send_gui_notification("Voice recognition state changed", "Voice recognition is now enabled", "warning");
+					params = malloc(strlen("Current mode: %s") + strlen(modes[mode]));
+					sprintf(params, "Current mode: %s", modes[mode]);
+					send_gui_notification("Voice recognition enabled", params, "warning");
+					printf("INFO: Current mode: %s\n", modes[mode]);
+					free(params);
 					free(hyp_new);
 					hyp_new = strdup("");
 				}
@@ -929,7 +934,8 @@ process_hypothesis(const char *hyp)
 		else if (strcmp(COMMAND_LOCK, hyp_new) == 0)
 		{
 			locked = 1;
-			send_gui_notification("Voice recognition state changed", "Voice recognition is now disabled", "warning");
+			send_gui_notification("Voice recognition disabled", "Not listening for commands", "warning");
+			printf("INFO: xbmcvc is now locked\n");
 		}
 	}
 
@@ -950,7 +956,7 @@ process_hypothesis(const char *hyp)
 						mode = MODE_SPELLING;
 						retval = 1;
 						printf("INFO: Changed to spelling mode\n");
-						send_gui_notification("Voice recognition mode changed", "Currently working in spelling mode", "warning");
+						send_gui_notification("Voice recognition mode changed", "Current mode: spelling", "warning");
 					}
 					else
 					{
@@ -971,6 +977,7 @@ process_hypothesis(const char *hyp)
 				if (strcmp("ACCEPT", hyp_new) == 0)
 				{
 					send_json_rpc_request("Input.ExecuteAction", "\"action\":\"enter\"", NULL);
+					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
 					printf("INFO: Changed to normal mode\n");
@@ -980,6 +987,7 @@ process_hypothesis(const char *hyp)
 				{
 					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 					send_json_rpc_request("Input.Back", NULL, NULL);
+					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
 					printf("INFO: Changed to normal mode\n");
@@ -997,7 +1005,7 @@ process_hypothesis(const char *hyp)
 				else if (strcmp("NORMAL", hyp_new) == 0)
 				{
 					/* Send GUI notification and change mode */
-					send_gui_notification("Voice recognition mode changed", "Currently working in normal mode", "warning");
+					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
 					printf("INFO: Changed to normal mode\n");
@@ -1026,6 +1034,7 @@ main(int argc, char *argv[])
 {
 
 	int		i;
+	char*		dict;
 	char		hyp_test[255];
 	cmd_ln_t*	config;
 	ps_decoder_t*	ps;
@@ -1057,12 +1066,16 @@ main(int argc, char *argv[])
 
 	for (i=0; i<MODE_NONE; i++)
 	{
-		if (access(dictionaries[i], R_OK) == -1)
+		dict = malloc(strlen(MODELDIR "/lm/en/xbmcvc/.dic") + strlen(modes[i]) + 1);
+		sprintf(dict, MODELDIR "/lm/en/xbmcvc/%s.dic", modes[i]);
+		if (access(dict, R_OK) == -1)
 		{
-			printf("xbmcvc dictionary %s not found. Please check your xbmcvc installation.\n", dictionaries[i]);
+			printf("xbmcvc dictionary %s not found. Please check your xbmcvc installation.\n", dict);
+			free(dict);
 			cleanup_options();
 			exit(1);
 		}
+		free(dict);
 	}
 
 	printf("Initializing, please wait...\n");
