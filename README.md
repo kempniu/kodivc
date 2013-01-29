@@ -147,7 +147,7 @@ You can use the spelling mode to input letters and digits, e.g. when performing 
 
 _NOTE: Every mode switching command has to be the __only__ command in a batch in order to work._
 
-_NOTE: The input buffer is cleared whenever you enter the spelling mode._ (Remember that when you initially spell some letters, then switch to normal mode to enter some fancy characters and then try to switch back to spelling mode.)
+_NOTE: The input field is automatically cleared whenever you enter the spelling mode._ (Remember that when you initially spell some letters, then switch to normal mode to enter some fancy characters and then try to switch back to spelling mode.)
 
 #### Letters ####
 

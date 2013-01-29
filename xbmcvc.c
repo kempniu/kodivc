@@ -965,6 +965,7 @@ process_hypothesis(const char *hyp)
 					if (xbmc_version >= XBMC_VERSION_FRODO)
 					{
 						memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
+						send_json_rpc_request("Input.SendText", "\"text\":\"\",\"done\":false", NULL);
 						spelling_case = 0;
 						mode = MODE_SPELLING;
 						retval = 1;
