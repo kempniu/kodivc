@@ -8,7 +8,7 @@ Requirements
 
 To use _xbmcvc_, the following libraries need to be installed on your system:
 
-* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (http://cmusphinx.sourceforge.net/wiki/download/); _xbmcvc_ was tested with versions 0.6+
+* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (both available at [CMU Sphinx downloads](http://cmusphinx.sourceforge.net/wiki/download/)); _xbmcvc_ was tested with versions 0.6+
 * _libcurl_ (shipped with cURL, should be present on most systems; if that's not your case, go to the [libcurl homepage](http://curl.haxx.se/libcurl/))
 
 For _xbmcvc_ to work, you need an XBMC version which supports JSON-RPC API version 3 or higher, which means any pre-11.0 (pre-Eden) or newer version should work. Older releases (including Dharma) are not supported.
@@ -107,13 +107,13 @@ _NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo
 * _NEXT_
 * _SHUFFLE_
 * _UNSHUFFLE_
-* _REPEAT_ [_ALL_/_ONE_/_OFF_]
+* _REPEAT_ [ _ALL_ | _ONE_ | _OFF_ ]
 
 _NOTE: In XBMC 12 (Frodo) onwards you can also say REPEAT without an argument to cycle through available modes._
 
 #### Volume commands ####
 
-* _VOLUME_ [_TEN_/_TWENTY_/_THIRTY_/_FORTY_/_FIFTY_/_SIXTY_/_SEVENTY_/_EIGHTY_/_NINETY_/_MAX_]
+* _VOLUME_ [ _TEN_ | _TWENTY_ | _THIRTY_ | _FORTY_ | _FIFTY_ | _SIXTY_ | _SEVENTY_ | _EIGHTY_ | _NINETY_ | _MAX_ ]
 * _MUTE_
 * _UNMUTE_
 
@@ -145,7 +145,7 @@ You can use the spelling mode to input letters and digits, e.g. when performing 
 * _CANCEL_ - closes the onscreen keyboard, dismissing the provided input (similar to pressing the ESC key)
 * _NORMAL_ - switches to normal mode without closing the onscreen keyboard; this is useful if you want to input special characters which don't have an _xbmcvc_ command counterpart
 
-_NOTE: Every mode switching command has to be the __only__ command in a batch in order to work._
+_NOTE: Every mode switching command has to be the **only** command in a batch in order to work._
 
 _NOTE: The input field is automatically cleared whenever you enter the spelling mode._ (Remember that when you initially spell some letters, then switch to normal mode to enter some fancy characters and then try to switch back to spelling mode.)
 
@@ -153,33 +153,33 @@ _NOTE: The input field is automatically cleared whenever you enter the spelling 
 
 _xbmcvc_ uses the [NATO phonetic alphabet](http://en.wikipedia.org/wiki/NATO_phonetic_alphabet) for spelling. The reason for that is that single letter recognition is very inaccurate, which shouldn't come as much of a surprise (how often do you spell your surname over the phone and people at the other end get it wrong?). NATO phonetic alphabet usage enables _pocketsphinx_ to recognize the desired letters with much better accuracy. Here is a complete list of letter-related commands:
 
-* ___A__LPHA_
-* ___B__RAVO_
-* ___C__HARLIE_
-* ___D__ELTA_
-* ___E__CHO_
-* ___F__OXTROT_
-* ___G__OLF_
-* ___H__OTEL_
-* ___I__NDIA_
-* ___J__ULIET_
-* ___K__ILO_
-* ___L__IMA_
-* ___M__IKE_
-* ___N__OVEMBER_
-* ___O__SCAR_
-* ___P__APA_
-* ___Q__UEBEC_
-* ___R__OMEO_
-* ___S__IERRA_
-* ___T__ANGO_
-* ___U__NIFORM_
-* ___V__ICTOR_
-* ___W__HISKEY_
-* ___X__-RAY_
-* ___Y__ANKEE_
-* ___Z__ULU_
- 
+* _**A**LPHA_
+* _**B**RAVO_
+* _**C**HARLIE_
+* _**D**ELTA_
+* _**E**CHO_
+* _**F**OXTROT_
+* _**G**OLF_
+* _**H**OTEL_
+* _**I**NDIA_
+* _**J**ULIET_
+* _**K**ILO_
+* _**L**IMA_
+* _**M**IKE_
+* _**N**OVEMBER_
+* _**O**SCAR_
+* _**P**APA_
+* _**Q**UEBEC_
+* _**R**OMEO_
+* _**S**IERRA_
+* _**T**ANGO_
+* _**U**NIFORM_
+* _**V**ICTOR_
+* _**W**HISKEY_
+* _**X**-RAY_
+* _**Y**ANKEE_
+* _**Z**ULU_
+
 #### Digits ####
 
 * _ZERO_
@@ -203,19 +203,16 @@ _xbmcvc_ uses the [NATO phonetic alphabet](http://en.wikipedia.org/wiki/NATO_pho
 
 #### Special commands ####
 
-* _CLEAR_ - clears the input buffer; this has to be the __only__ command in a batch in order to work
+* _CLEAR_ - clears the input field; this has to be the __only__ command in a batch in order to work
 * _LOWER_ - switch to lower case input
 * _UPPER_ - switch to upper case input
 
 Troubleshooting
 ---------------
 
-*   If you get the _Ready for listening!_ message but nothing you say to the microphone results in a _Heard: "COMMAND"_ type of line appearing, try the test mode:
+*   If you get the _Ready for listening!_ message but nothing you say to the microphone results in a _Heard: "COMMAND"_ type of line appearing, try the test mode: start _xbmcvc_ with the __-t__ command line switch, then enter space-separated commands in ALL CAPS, ending a batch by pressing ENTER. Example:
 
-    1. Start _xbmcvc_ with the __-t__ command line switch.
-    2. Enter space-separated commands in ALL CAPS, ending a batch by pressing ENTER. Example:
-
-            LEFT TWO SELECT<ENTER>
+        LEFT TWO SELECT<ENTER>
 
     You'll probably also want to disable locking for testing, so add the __-l__ switch to the command line as well.
 
@@ -225,7 +222,7 @@ Troubleshooting
     * capture levels set too low, too high (yes, overly high sensitivity is also a problem) or muted,
     * speaking too quietly.
 
-*   If after starting _xbmcvc_ you see a series of odd lines like:
+*   If after starting _xbmcvc_ you see a series of odd lines among the normal ones, like below:
 
         Initializing, please wait...
          256x13 256x13 256x13
