@@ -234,6 +234,8 @@ Troubleshooting
 
     just ignore them. It's a known issue with _pocketsphinx_ 0.6. These lines shouldn't appear when using _pocketsphinx_ 0.7 or newer.
 
+*   If after starting _xbmcvc_ you get a _Fatal error at xbmcvc.c:xxx: Failed to open audio device_ message, you are probably experiencing a permissions-related issue. To confirm, try running _xbmcvc_ as root - if it works fine, it means the user you're normally running _xbmcvc_ as is denied access to the audio device you're trying to capture speech from.
+
 *   If after starting _xbmcvc_ you get an error saying _Failed to calibrate voice activity detection_, please check your mixer levels for capturing audio.
 
 Language support
