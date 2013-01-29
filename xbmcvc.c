@@ -860,9 +860,13 @@ perform_spelling(const char *hyp)
 			memcpy(command, hyp + ls + 1, i - ls - 1);
 
 			/* DELETE command is treated separately as it doesn't add characters to the buffer */
-			if (strcmp("DELETE", command) == 0 && j > 0)
+			if (strcmp("DELETE", command) == 0)
 			{
-				spelling_buffer[j - 1] = '\0';
+				if (j > 0)
+				{
+					spelling_buffer[j - 1] = '\0';
+					j--;
+				}
 			}
 			else
 			{
@@ -871,7 +875,7 @@ perform_spelling(const char *hyp)
 				if (character != -1)
 					/* If the command is valid, append the character mapped to it to the buffer */
 					spelling_buffer[j++] = character;
-				else 
+				else if (strlen(command) > 0)
 					/* If the command is invalid, print out a warning */
 					printf("WARNING: Unknown spelling mode command \"%s\"\n", command);
 			}
