@@ -1252,15 +1252,10 @@ main(int argc, char *argv[])
 			if (process_hypothesis(hyp) == 1)
 			{
 				/* If process_hypothesis() returns 1, mode of operation has changed - load a proper dictionary */
-				switch(mode)
-				{
-					case MODE_NORMAL:
-						ps_load_dict(ps, MODELDIR "/lm/en/xbmcvc/normal.dic", NULL, NULL);
-						break;
-					case MODE_SPELLING:
-						ps_load_dict(ps, MODELDIR "/lm/en/xbmcvc/spelling.dic", NULL, NULL);
-						break;
-				}
+				dict = malloc(strlen(MODELDIR "/lm/en/xbmcvc/.dic") + strlen(modes[mode]) + 1);
+				sprintf(dict, MODELDIR "/lm/en/xbmcvc/%s.dic", modes[mode]);
+				ps_load_dict(ps, dict, NULL, NULL);
+				free(dict);
 			}
 
 			/* Resume recording */
