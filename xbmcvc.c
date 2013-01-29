@@ -495,6 +495,7 @@ initialize_actions(void)
 
 		case XBMC_VERSION_FRODO:
 			/* Player actions */
+			register_action("MENU", "Input.ShowOSD", NULL, NULL, 0, 1, 0, 0);
 			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
 			register_action("PAUSE", "Player.SetSpeed", "\"speed\":0", NULL, 0, 1, 1, 0);
 			register_action("PLAY", "Player.SetSpeed", "\"speed\":1", NULL, 0, 1, 1, 0);

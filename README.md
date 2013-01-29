@@ -103,11 +103,14 @@ _NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo
 * _PLAY_
 * _PAUSE_
 * _STOP_
+* _MENU_*
 * _PREVIOUS_
 * _NEXT_
 * _SHUFFLE_
 * _UNSHUFFLE_
 * _REPEAT_ [ _ALL_ | _ONE_ | _OFF_ ]
+
+_NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo) onwards._
 
 _NOTE: In XBMC 12 (Frodo) onwards you can also say REPEAT without an argument to cycle through available modes._
 
