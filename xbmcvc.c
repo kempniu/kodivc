@@ -64,7 +64,6 @@
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
 #define MAX_ACTIONS			5
 #define SPELLING_BUFFER_SIZE		256
-#define SPELLING_PARAMS_FORMAT		"\"text\":\"%s\",\"done\":%s"
 #define XBMC_VERSION_EDEN		11
 #define XBMC_VERSION_FRODO		12
 #define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
@@ -1009,10 +1008,7 @@ process_hypothesis(const char *hyp)
 				else if (strcmp("CLEAR", hyp_new) == 0)
 				{
 					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
-					params = malloc(strlen(SPELLING_PARAMS_FORMAT) + strlen(spelling_buffer) + 5);
-					sprintf(params, SPELLING_PARAMS_FORMAT, spelling_buffer, "false");
-					send_json_rpc_request("Input.SendText", params, NULL);
-					free(params);
+					send_json_rpc_request("Input.SendText", "\"text\":\"\",\"done\":false", NULL);
 				}
 				/* Return to normal mode */
 				else if (strcmp("NORMAL", hyp_new) == 0)
@@ -1026,8 +1022,8 @@ process_hypothesis(const char *hyp)
 				else
 				{
 					perform_spelling(hyp_new);
-					params = malloc(strlen(SPELLING_PARAMS_FORMAT) + strlen(spelling_buffer) + 5);
-					sprintf(params, SPELLING_PARAMS_FORMAT, spelling_buffer, "false");
+					params = malloc(strlen("\"text\":\"%s\",\"done\":false") + strlen(spelling_buffer));
+					sprintf(params, "\"text\":\"%s\",\"done\":false", spelling_buffer);
 					send_json_rpc_request("Input.SendText", params, NULL);
 					free(params);
 				}
