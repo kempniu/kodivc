@@ -66,7 +66,7 @@ _xbmcvc_ recognizes a limited set of commands listed in file __model/xbmcvc.voca
 
 To switch between different modes of operation, use the following voice commands:
 
-* [normal] => SPELL => [spell] => DONE / BACK / NORMAL => [normal]
+* [normal] => SPELL => [spell] => ACCEPT / CANCEL / NORMAL => [normal]
 
 Note that every mode switching command has to be the only command heard in a batch (one batch = one "Heard: COMMAND1 COMMAND2" type of line in _xbmcvc_ output) in order to be recognized.
 

@@ -859,8 +859,8 @@ perform_spelling(const char *hyp)
 			memset(command, 0, i - ls);
 			memcpy(command, hyp + ls + 1, i - ls - 1);
 
-			/* BACKSPACE command is treated separately as it doesn't add characters to the buffer */
-			if (strcmp("BACKSPACE", command) == 0 && j > 0)
+			/* DELETE command is treated separately as it doesn't add characters to the buffer */
+			if (strcmp("DELETE", command) == 0 && j > 0)
 			{
 				spelling_buffer[j - 1] = '\0';
 			}
@@ -968,7 +968,7 @@ process_hypothesis(const char *hyp)
 
 			case MODE_SPELLING:
 				/* Return to normal mode, accepting input */
-				if (strcmp("DONE", hyp_new) == 0)
+				if (strcmp("ACCEPT", hyp_new) == 0)
 				{
 					send_json_rpc_request("Input.ExecuteAction", "\"action\":\"enter\"", NULL);
 					mode = MODE_NORMAL;
@@ -976,7 +976,7 @@ process_hypothesis(const char *hyp)
 					printf("INFO: Changed to normal mode\n");
 				}
 				/* Return to normal mode, rejecting input */
-				else if (strcmp("BACK", hyp_new) == 0)
+				else if (strcmp("CANCEL", hyp_new) == 0)
 				{
 					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 					send_json_rpc_request("Input.Back", NULL, NULL);
