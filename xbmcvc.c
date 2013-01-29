@@ -999,8 +999,7 @@ process_hypothesis(const char *hyp)
 				/* Return to normal mode, rejecting input */
 				else if (strcmp("CANCEL", hyp_new) == 0)
 				{
-					memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
-					send_json_rpc_request("Input.Back", NULL, NULL);
+					send_json_rpc_request("Input.ExecuteAction", "\"action\":\"previousmenu\"", NULL);
 					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
