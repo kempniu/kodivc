@@ -213,11 +213,11 @@ cleanup(void)
 }
 
 void
-vprint_log(const int level, const char *format, va_list args)
+vprint_log(const int level, const char* format, va_list args)
 {
 
-	time_t now;
-	char timestamp[32];
+	time_t	now;
+	char	timestamp[32];
 
 	if (!config_daemon)
 	{
@@ -244,7 +244,7 @@ vprint_log(const int level, const char *format, va_list args)
 }
 
 void
-print_log(const int level, const char *format, ...)
+print_log(const int level, const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -253,7 +253,7 @@ print_log(const int level, const char *format, ...)
 }
 
 void
-die(const char *format, ...)
+die(const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -263,12 +263,12 @@ die(const char *format, ...)
 }
 
 void
-parse_options(int argc, char *argv[])
+parse_options(int argc, char* argv[])
 {
 
-	int option;
-	int quit = 0;
-	FILE *pidfile;
+	int	option;
+	int	quit = 0;
+	FILE*	pidfile;
 
 	/* Initialize default values */
 	config_json_rpc_host = malloc(strlen(JSON_RPC_DEFAULT_HOST) + 1);
@@ -379,7 +379,7 @@ parse_options(int argc, char *argv[])
 }
 
 int
-in_array(const char* haystack[], const int haystack_size, const char *needle)
+in_array(const char* haystack[], const int haystack_size, const char* needle)
 {
 	int found = 0;
 	int i = 0;
@@ -392,7 +392,7 @@ in_array(const char* haystack[], const int haystack_size, const char *needle)
 }
 
 void
-append_param(char **current, const char *append)
+append_param(char** current, const char* append)
 {
 	if (*current)
 	{
@@ -409,9 +409,9 @@ append_param(char **current, const char *append)
 
 /* CURL callback for saving HTTP response to a pointer passed via userdata */
 size_t
-save_response_in_memory(const char *ptr, const size_t size, const size_t nmemb, void *userdata)
+save_response_in_memory(const char* ptr, const size_t size, const size_t nmemb, void* userdata)
 {
-	curl_userdata_t *cud = (curl_userdata_t *) userdata;
+	curl_userdata_t* cud = (curl_userdata_t *) userdata;
 	*cud->dst = realloc(*cud->dst, cud->dst_s + (size * nmemb) + 1);
 	memcpy(*cud->dst + cud->dst_s, ptr, size * nmemb);
 	cud->dst_s += size * nmemb;
@@ -421,7 +421,7 @@ save_response_in_memory(const char *ptr, const size_t size, const size_t nmemb, 
 }
 
 int
-send_json_rpc_request(const char *method, const char *params, char **dst)
+send_json_rpc_request(const char* method, const char* params, char** dst)
 {
 
 	CURL*			curl;
@@ -490,11 +490,11 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 }
 
 void
-send_gui_notification(const char *title, const char *message, const char *icon)
+send_gui_notification(const char* title, const char* message, const char* icon)
 {
 
-	const char *format = "\"title\":\"%s\",\"message\":\"%s\",\"image\":\"%s\"";
-	char *params;
+	const char*	format = "\"title\":\"%s\",\"message\":\"%s\",\"image\":\"%s\"";
+	char*		params;
 
 	if (xbmc_version >= XBMC_VERSION_FRODO && config_notifications)
 	{
@@ -507,7 +507,7 @@ send_gui_notification(const char *title, const char *message, const char *icon)
 }
 
 int
-get_json_rpc_response_int(const char *method, const char *params, const char *param)
+get_json_rpc_response_int(const char* method, const char* params, const char* param)
 {
 
 	char*		response = NULL;
@@ -659,7 +659,7 @@ initialize_actions(void)
 }
 
 void
-perform_actions(const char *hyp)
+perform_actions(const char* hyp)
 {
 
 	int		i = 0;
@@ -676,7 +676,7 @@ perform_actions(const char *hyp)
 	char*		response = NULL;
 	char*		argument_search;
 	char*		params_fmt;
-	const char*		param;
+	const char*	param;
 	int		expect_arg = 0;
 
 	/* Get player ID via JSON-RPC */
@@ -864,10 +864,10 @@ perform_actions(const char *hyp)
 }
 
 void
-register_cmap(const char *string, const int character)
+register_cmap(const char* string, const int character)
 {
 
-	cmap_t *mapping = malloc(sizeof(cmap_t));
+	cmap_t* mapping = malloc(sizeof(cmap_t));
 	mapping->string = malloc(strlen(string) + 1);
 	strcpy(mapping->string, string);
 	mapping->character = character;
@@ -932,7 +932,7 @@ initialize_cmap(void)
 }
 
 int
-find_cmap(const char *string)
+find_cmap(const char* string)
 {
 
 	int found = 0;
@@ -954,14 +954,14 @@ find_cmap(const char *string)
 }
 
 void
-perform_spelling(const char *hyp)
+perform_spelling(const char* hyp)
 {
 
-	int i = 0;
-	int j = strlen(spelling_buffer);
-	int ls = -1;
-	int character;
-	char *command;
+	int	i = 0;
+	int	j = strlen(spelling_buffer);
+	int	ls = -1;
+	int	character;
+	char*	command;
 
 	do
 	{
@@ -1016,7 +1016,7 @@ perform_spelling(const char *hyp)
 }
 
 int
-process_hypothesis(const char *hyp)
+process_hypothesis(const char* hyp)
 {
 
 	char*	hyp_new = strdup(hyp);
@@ -1158,7 +1158,7 @@ process_hypothesis(const char *hyp)
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 
 	int		pid;
