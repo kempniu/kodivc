@@ -720,6 +720,10 @@ perform_actions(const char *hyp)
 								if (j > 0 && in_array(action->req, action->req_size, queue[j-1]->word))
 									/* Set number of repeats for preceding action */
 									queue[j-1]->repeats = action->repeats;
+								else if (j == 0)
+									print_log(LOG_WARNING, "No action to repeat");
+								else
+									print_log(LOG_WARNING, "Action %s is not repeatable", queue[j-1]->word);
 							}
 							else
 							{
