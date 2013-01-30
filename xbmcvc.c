@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <time.h>
 #include <unistd.h>
 
 /* Constants */
@@ -125,6 +126,7 @@ char*		config_json_rpc_host;
 char*		config_json_rpc_port;
 char*		config_alsa_device;
 int		config_locking = 1;
+FILE*		config_logfile;
 int		config_syslog = 0;
 int		config_notifications = 1;
 int		config_test_mode = 0;
@@ -191,18 +193,37 @@ cleanup(void)
 	}
 	free(cmap);
 
+	if (config_logfile)
+		fclose(config_logfile);
+	else if (config_syslog)
+		closelog();
 }
 
 void
 vprint_log(const int level, const char *format, va_list args)
 {
 
+	time_t now;
+	char timestamp[32];
+
 	printf("%s: ", loglevels[level]);
 	vprintf(format, args);
 	printf("\n");
 
-	if (config_syslog)
+	if (config_logfile)
+	{
+		now = time(NULL);
+		snprintf(timestamp, 32, "%s", asctime(localtime(&now)));
+		/* Trim newline */
+		*(timestamp + strlen(timestamp) - 1) = '\0';
+		fprintf(config_logfile, "%s: ", timestamp);
+		vfprintf(config_logfile, format, args);
+		fprintf(config_logfile, "\n");
+	}
+	else if (config_syslog)
+	{
 		vsyslog(level, format, args);
+	}
 
 }
 
@@ -236,12 +257,13 @@ parse_options(int argc, char *argv[])
 	config_json_rpc_host = malloc(strlen(JSON_RPC_DEFAULT_HOST) + 1);
 	config_json_rpc_port = malloc(6);
 	config_alsa_device = NULL;
+	config_logfile = NULL;
 
 	sprintf(config_json_rpc_host, "%s", JSON_RPC_DEFAULT_HOST);
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:lLntVh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:D:lL:ntVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -268,9 +290,19 @@ parse_options(int argc, char *argv[])
 				config_locking = 0;
 				break;
 
-			/* Syslog */
+			/* Logging */
 			case 'L':
-				config_syslog = 1;
+				if (strcmp(optarg, "syslog") == 0)
+				{
+					openlog("xbmcvc", 0, LOG_USER);
+					config_syslog = 1;
+				}
+				else
+				{
+					config_logfile = fopen(optarg, "a");
+ 					if (config_logfile == NULL)
+						die("Unable to open logfile %s - aborting", optarg);
+				}
 				break;
 
 			/* Notifications */
