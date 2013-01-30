@@ -223,7 +223,7 @@ vprint_log(const int level, const char *format, va_list args)
 		snprintf(timestamp, 32, "%s", asctime(localtime(&now)));
 		/* Trim newline */
 		*(timestamp + strlen(timestamp) - 1) = '\0';
-		fprintf(config_logfile, "%s: ", timestamp);
+		fprintf(config_logfile, "%s %s: ", timestamp, loglevels[level]);
 		vfprintf(config_logfile, format, args);
 		fprintf(config_logfile, "\n");
 	}
