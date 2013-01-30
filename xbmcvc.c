@@ -46,17 +46,21 @@
 /* Constants */
 #define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -l ] [ -L ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H hostname ] [ -P port ] [ -D device ] [ -l ]\n" \
+					"              [ -L file|syslog ][ -n ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
-					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
-					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
-					"    -D device    Name of ALSA device to capture speech from\n" \
-					"    -l           Disable locking/unlocking\n" \
-					"    -L           Enable syslog logging\n" \
-					"    -n           Disable GUI notifications\n" \
-					"    -t           Enable test mode - enter commands on stdin\n" \
-					"    -V           Print version information and exit\n" \
-					"    -h           Print this help message\n" \
+					"    -H hostname       Hostname or IP address of the XBMC instance you want\n" \
+					"                      to control (default: localhost)\n" \
+					"    -P port           Port number the XBMC instance you want to control\n" \
+					"                      is listening on (default: 8080)\n" \
+					"    -D device         Name of ALSA device to capture speech from\n" \
+					"    -l                Disable locking/unlocking\n" \
+					"    -L file|syslog    Enable logging to file (supply path)\n" \
+					"                      or to syslog (supply \"syslog\")\n" \
+					"    -n                Disable GUI notifications\n" \
+					"    -t                Enable test mode - enter commands on stdin\n" \
+					"    -V                Print version information and exit\n" \
+					"    -h                Print this help message\n" \
 					"\n"
 
 #define COMMAND_UNLOCK			"X_B_M_C"
