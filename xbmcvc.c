@@ -46,12 +46,13 @@
 /* Constants */
 #define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -l ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H host ] [ -P port ] [ -D device ] [ -l ] [ -L ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname  Hostname or IP address of the XBMC instance you want to control (default: localhost)\n" \
 					"    -P port      Port number the XBMC instance you want to control is listening on (default: 8080)\n" \
 					"    -D device    Name of ALSA device to capture speech from\n" \
 					"    -l           Disable locking/unlocking\n" \
+					"    -L           Enable syslog logging\n" \
 					"    -n           Disable GUI notifications\n" \
 					"    -t           Enable test mode - enter commands on stdin\n" \
 					"    -V           Print version information and exit\n" \
@@ -120,6 +121,7 @@ char*		config_json_rpc_host;
 char*		config_json_rpc_port;
 char*		config_alsa_device;
 int		config_locking = 1;
+int		config_syslog = 0;
 int		config_notifications = 1;
 int		config_test_mode = 0;
 
@@ -190,9 +192,14 @@ cleanup(void)
 void
 vprint_log(const int level, const char *format, va_list args)
 {
+
 	printf("%s: ", loglevels[level]);
 	vprintf(format, args);
 	printf("\n");
+
+	if (config_syslog)
+		vsyslog(level, format, args);
+
 }
 
 void
@@ -230,7 +237,7 @@ parse_options(int argc, char *argv[])
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:lntVh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:D:lLntVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -255,6 +262,11 @@ parse_options(int argc, char *argv[])
 			/* Locking */
 			case 'l':
 				config_locking = 0;
+				break;
+
+			/* Syslog */
+			case 'L':
+				config_syslog = 1;
 				break;
 
 			/* Notifications */
@@ -1133,10 +1145,13 @@ main(int argc, char *argv[])
 			{
 				/* Trim newline from hypothesis */
 				*(hyp_test + strlen(hyp_test) - 1) = '\0';
+				/* Log */
+				print_log(LOG_INFO, "Line read: \"%s\"", hyp_test);
 				/* Process hypothesis */
 				process_hypothesis(hyp_test);
 			}
 		}
+		print_log(LOG_INFO, "Blank line read, exiting");
 	}
 	else
 	{
@@ -1265,6 +1280,8 @@ main(int argc, char *argv[])
 				die("Failed to start recording");
 
 		}
+
+		print_log(LOG_INFO, "Signal caught - exiting");
 
 		/* Cleanup */
 		cont_ad_close(cont);
