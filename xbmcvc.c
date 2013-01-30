@@ -657,6 +657,8 @@ perform_actions(const char *hyp)
 
 	/* Get player ID via JSON-RPC */
 	player_id = get_json_rpc_response_int("Player.GetActivePlayers", NULL, "playerid");
+	if (player_id == -2)
+		die("XBMC instance at %s:%s is no longer responding", config_json_rpc_host, config_json_rpc_port);
 
 	/* Prepare action queue from words in hypothesis */
 	do
