@@ -662,7 +662,7 @@ perform_actions(const char *hyp)
 						}
 						else
 						{
-							printf("WARNING: Player action %s ignored as there is no active player\n", action_string);
+							print_log(LOG_WARNING, "Player action %s ignored as there is no active player", action_string);
 						}
 						/* Stop searching for a matching action */
 						matched = 1;
@@ -670,7 +670,7 @@ perform_actions(const char *hyp)
 					k++;
 				}
 				if (k == actions_count && !matched)
-					printf("WARNING: Unknown action \"%s\"\n", action_string);
+					print_log(LOG_WARNING, "Unknown action \"%s\"", action_string);
 			}
 			else
 			{
@@ -706,7 +706,7 @@ perform_actions(const char *hyp)
 				/* If no valid argument was found, delete last action */
 				if (!matched)
 				{
-					printf("WARNING: %s is not a valid argument for %s - interpreting as action\n", action_string, queue[j-1]->word);
+					print_log(LOG_WARNING, "%s is not a valid argument for %s - interpreting as action", action_string, queue[j-1]->word);
 					free(queue[j-1]->params);
 					free(queue[j-1]);
 					j--;
@@ -732,7 +732,7 @@ perform_actions(const char *hyp)
 		/* If the command requires an argument, discard last action */
 		if (action->needs_argument)
 		{
-			printf("WARNING: Action %s requires an argument, none given - ignoring action\n", action->word);
+			print_log(LOG_WARNING, "Action %s requires an argument, none given - ignoring action", action->word);
 			free(queue[j-1]->params);
 			free(queue[j-1]);
 			j--;
@@ -910,7 +910,7 @@ perform_spelling(const char *hyp)
 					spelling_buffer[j++] = spelling_case ? toupper(character) : character;
 				else if (strlen(command) > 0)
 					/* If the command is invalid, print out a warning */
-					printf("WARNING: Unknown spelling mode command \"%s\"\n", command);
+					print_log(LOG_WARNING, "Unknown spelling mode command \"%s\"", command);
 			}
 
 			ls = i;
@@ -940,7 +940,7 @@ process_hypothesis(const char *hyp)
 			if (strstr(hyp, COMMAND_UNLOCK) == hyp)
 			{
 				locked = 0;
-				printf("INFO: xbmcvc is now unlocked\n");
+				print_log(LOG_INFO, "xbmcvc is now unlocked");
 				/* Check if there are further commands after the unlock command */
 				next_word = strchr(hyp, ' ');
 				if (next_word)
@@ -955,7 +955,7 @@ process_hypothesis(const char *hyp)
 					params = malloc(strlen("Current mode: %s") + strlen(modes[mode]));
 					sprintf(params, "Current mode: %s", modes[mode]);
 					send_gui_notification("Voice recognition enabled", params, "warning");
-					printf("INFO: Current mode: %s\n", modes[mode]);
+					print_log(LOG_INFO, "Current mode: %s", modes[mode]);
 					free(params);
 					free(hyp_new);
 					hyp_new = strdup("");
@@ -964,7 +964,7 @@ process_hypothesis(const char *hyp)
 			/* ...the first command heard is not the unlock command, warn and ignore all commands */
 			else
 			{
-				printf("WARNING: xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock\n");
+				print_log(LOG_WARNING, "xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock");
 			}
 		}
 		/* If we are unlocked and the only command heard is the lock command, lock */
@@ -972,7 +972,7 @@ process_hypothesis(const char *hyp)
 		{
 			locked = 1;
 			send_gui_notification("Voice recognition disabled", "Not listening for commands", "warning");
-			printf("INFO: xbmcvc is now locked\n");
+			print_log(LOG_INFO, "xbmcvc is now locked");
 		}
 	}
 
@@ -994,12 +994,12 @@ process_hypothesis(const char *hyp)
 						spelling_case = 0;
 						mode = MODE_SPELLING;
 						retval = 1;
-						printf("INFO: Changed to spelling mode\n");
+						print_log(LOG_INFO, "Changed to spelling mode");
 						send_gui_notification("Voice recognition mode changed", "Current mode: spelling", "warning");
 					}
 					else
 					{
-						printf("ERROR: Spelling mode not available before Frodo\n");
+						print_log(LOG_ERR, "Spelling mode not available before Frodo");
 					}
 				}
 				else if (strlen(hyp_new) > 0)
@@ -1019,7 +1019,7 @@ process_hypothesis(const char *hyp)
 					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
-					printf("INFO: Changed to normal mode\n");
+					print_log(LOG_INFO, "Changed to normal mode");
 				}
 				/* Return to normal mode, rejecting input */
 				else if (strcmp("CANCEL", hyp_new) == 0)
@@ -1028,7 +1028,7 @@ process_hypothesis(const char *hyp)
 					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
-					printf("INFO: Changed to normal mode\n");
+					print_log(LOG_INFO, "Changed to normal mode");
 				}
 				/* Clear input */
 				else if (strcmp("CLEAR", hyp_new) == 0)
@@ -1043,7 +1043,7 @@ process_hypothesis(const char *hyp)
 					send_gui_notification("Voice recognition mode changed", "Current mode: normal", "warning");
 					mode = MODE_NORMAL;
 					retval = 1;
-					printf("INFO: Changed to normal mode\n");
+					print_log(LOG_INFO, "Changed to normal mode");
 				}
 				else
 				{
@@ -1103,7 +1103,7 @@ main(int argc, char *argv[])
 		free(dict);
 	}
 
-	printf("Initializing, please wait...\n");
+	print_log(LOG_INFO, "Initializing, please wait...");
 
 	/* Check XBMC version */
 	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
@@ -1122,7 +1122,7 @@ main(int argc, char *argv[])
 
 	if (config_test_mode)
 	{
-		printf("Test mode enabled - enter space-separated commands in ALL CAPS. Enter blank line to end.\n");
+		print_log(LOG_INFO, "Test mode enabled - enter space-separated commands in ALL CAPS. Enter blank line to end.");
 		for (;;)
 		{
 			if (fgets(hyp_test, 255, stdin) == NULL || hyp_test[0] == '\n')
@@ -1175,7 +1175,7 @@ main(int argc, char *argv[])
 		signal(SIGINT, set_exit_flag);
 		signal(SIGTERM, set_exit_flag);
 
-		printf("Ready for listening!\n");
+		print_log(LOG_INFO, "Ready for listening!");
 
 		/* Main listening loop */
 		for (;;)
@@ -1249,7 +1249,7 @@ main(int argc, char *argv[])
 			/* Get hypothesis for utterance */
 			hyp = ps_get_hyp(ps, NULL, NULL);
 			/* Print hypothesis */
-			printf("Heard: \"%s\"\n", hyp);
+			print_log(LOG_INFO, "Heard: \"%s\"", hyp);
 			/* Process hypothesis */
 			if (process_hypothesis(hyp) == 1)
 			{
