@@ -50,7 +50,7 @@
 #define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
 					"Usage: xbmcvc [ -H hostname ] [ -P port ] [ -d ] [ -D device ] [ -l ]\n" \
-					"              [ -L file|syslog ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
+					"              [ -L file|syslog ] [ -n ] [ -p ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname       Hostname or IP address of the XBMC instance you want\n" \
 					"                      to control (default: localhost)\n" \
@@ -62,6 +62,7 @@
 					"    -L file|syslog    Enable logging to file (supply path)\n" \
 					"                      or to syslog (supply \"syslog\")\n" \
 					"    -n                Disable GUI notifications\n" \
+					"    -p pidfile        Write PID to supplied pidfile\n" \
 					"    -t                Enable test mode - enter commands on stdin\n" \
 					"    -V                Print version information and exit\n" \
 					"    -h                Print this help message\n" \
@@ -133,6 +134,7 @@ int		config_locking = 1;
 FILE*		config_logfile;
 int		config_syslog = 0;
 int		config_notifications = 1;
+char*		config_pidfile;
 int		config_test_mode = 0;
 
 /* Action database */
@@ -173,10 +175,21 @@ cleanup(void)
 
 	int i;
 
+	/* Pidfile */
+	if (config_pidfile)
+		unlink(config_pidfile);
+
+	/* Filehandles */
+	if (config_logfile)
+		fclose(config_logfile);
+	else if (config_syslog)
+		closelog();
+
 	/* Configuration */
 	free(config_json_rpc_host);
 	free(config_json_rpc_port);
 	free(config_alsa_device);
+	free(config_pidfile);
 
 	/* Actions database */
 	for (i=0; i<actions_count; i++)
@@ -197,10 +210,6 @@ cleanup(void)
 	}
 	free(cmap);
 
-	if (config_logfile)
-		fclose(config_logfile);
-	else if (config_syslog)
-		closelog();
 }
 
 void
@@ -259,18 +268,20 @@ parse_options(int argc, char *argv[])
 
 	int option;
 	int quit = 0;
+	FILE *pidfile;
 
 	/* Initialize default values */
 	config_json_rpc_host = malloc(strlen(JSON_RPC_DEFAULT_HOST) + 1);
 	config_json_rpc_port = malloc(6);
 	config_alsa_device = NULL;
 	config_logfile = NULL;
+	config_pidfile = NULL;
 
 	sprintf(config_json_rpc_host, "%s", JSON_RPC_DEFAULT_HOST);
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:dD:lL:ntVh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:dD:lL:np:tVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -320,6 +331,19 @@ parse_options(int argc, char *argv[])
 			/* Notifications */
 			case 'n':
 				config_notifications = 0;
+				break;
+
+			/* Pidfile */
+			case 'p':
+				if (access(optarg, R_OK) == 0)
+					die("Pidfile %s already exists", optarg);
+				pidfile = fopen(optarg, "w");
+				if (pidfile == NULL)
+					die("Failed to write PID to %s", optarg);
+				fprintf(pidfile, "%d", getpid());
+				fclose(pidfile);
+				config_pidfile = malloc(strlen(optarg) + 1);
+				sprintf(config_pidfile, "%s", optarg);
 				break;
 
 			/* Test mode */
