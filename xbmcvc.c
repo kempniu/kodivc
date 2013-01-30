@@ -33,6 +33,8 @@
 #include <pocketsphinx.h>
 
 /* Other headers */
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
@@ -47,13 +49,14 @@
 /* Constants */
 #define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H hostname ] [ -P port ] [ -D device ] [ -l ]\n" \
-					"              [ -L file|syslog ][ -n ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H hostname ] [ -P port ] [ -d ] [ -D device ] [ -l ]\n" \
+					"              [ -L file|syslog ] [ -n ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
 					"    -H hostname       Hostname or IP address of the XBMC instance you want\n" \
 					"                      to control (default: localhost)\n" \
 					"    -P port           Port number the XBMC instance you want to control\n" \
 					"                      is listening on (default: 8080)\n" \
+					"    -d                Run in daemon mode\n" \
 					"    -D device         Name of ALSA device to capture speech from\n" \
 					"    -l                Disable locking/unlocking\n" \
 					"    -L file|syslog    Enable logging to file (supply path)\n" \
@@ -124,6 +127,7 @@ const char*	modes[] = { "normal", "spelling" };
 /* Global configuration variables */
 char*		config_json_rpc_host;
 char*		config_json_rpc_port;
+int		config_daemon = 0;
 char*		config_alsa_device;
 int		config_locking = 1;
 FILE*		config_logfile;
@@ -206,9 +210,12 @@ vprint_log(const int level, const char *format, va_list args)
 	time_t now;
 	char timestamp[32];
 
-	printf("%s: ", loglevels[level]);
-	vprintf(format, args);
-	printf("\n");
+	if (!config_daemon)
+	{
+		printf("%s: ", loglevels[level]);
+		vprintf(format, args);
+		printf("\n");
+	}
 
 	if (config_logfile)
 	{
@@ -263,7 +270,7 @@ parse_options(int argc, char *argv[])
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:D:lL:ntVh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:dD:lL:ntVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -277,6 +284,11 @@ parse_options(int argc, char *argv[])
 			/* XBMC port */
 			case 'P':
 				snprintf(config_json_rpc_port, 6, "%s", optarg);
+				break;
+
+			/* Daemon mode */
+			case 'd':
+				config_daemon = 1;
 				break;
 
 			/* ALSA capture device */
@@ -333,6 +345,9 @@ parse_options(int argc, char *argv[])
 
 		}
 	}
+
+	if (config_test_mode && config_daemon)
+		die("Daemon mode and test mode are mutually exclusive - aborting");
 
 	if (quit)
 		exit(0);
@@ -1116,6 +1131,7 @@ int
 main(int argc, char *argv[])
 {
 
+	int		pid;
 	int		i;
 	char*		dict;
 	char		hyp_test[255];
@@ -1134,6 +1150,33 @@ main(int argc, char *argv[])
 
 	/* Parse command line options */
 	parse_options(argc, argv);
+
+	if (config_daemon)
+	{
+
+		/* Fork */
+		pid = fork();
+		/* Fork failed */
+		if (pid == -1)
+			die("Unable to fork");
+		/* We're in the parent process - exit */
+		else if (pid > 0)
+			exit(0);
+
+		/* From now on, we're in the child process - daemonize */
+		umask(0);
+		if (setsid() == -1)
+			die("Unable to create a new session for child process");
+		if (chdir("/") == -1)
+			die("Unable to change directory to /");
+		if (freopen("/dev/null", "r", stdin) == NULL)
+			die("Failed to redirect stdin");
+		if (freopen("/dev/null", "w", stdout) == NULL)
+			die("Failed to redirect stdout");
+		if (freopen("/dev/null", "w", stderr) == NULL)
+			die("Failed to redirect stderr");
+
+	}
 
 	/* Check if language model files were properly installed */
 	if (access(MODEL_HMM, R_OK) == -1)
