@@ -49,20 +49,20 @@
 /* Constants */
 #define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H hostname ] [ -P port ] [ -d ] [ -D device ] [ -l ]\n" \
-					"              [ -L file|syslog ] [ -n ] [ -p ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H <hostname> ] [ -P <port> ] [ -d ] [ -D <device> ] [ -l ]\n" \
+					"              [ -L <file>|syslog ] [ -n ] [ -p <pidfile> ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
-					"    -H hostname       Hostname or IP address of the XBMC instance you want\n" \
+					"    -H <hostname>     Hostname or IP address of the XBMC instance you want\n" \
 					"                      to control (default: localhost)\n" \
-					"    -P port           Port number the XBMC instance you want to control\n" \
+					"    -P <port>         Port number the XBMC instance you want to control\n" \
 					"                      is listening on (default: 8080)\n" \
 					"    -d                Run in daemon mode\n" \
-					"    -D device         Name of ALSA device to capture speech from\n" \
+					"    -D <device>       Name of ALSA device to capture speech from\n" \
 					"    -l                Disable locking/unlocking\n" \
-					"    -L file|syslog    Enable logging to file (supply path)\n" \
+					"    -L <file>|syslog  Enable logging to file (supply path)\n" \
 					"                      or to syslog (supply \"syslog\")\n" \
 					"    -n                Disable GUI notifications\n" \
-					"    -p pidfile        Write PID to supplied pidfile\n" \
+					"    -p <pidfile>      Write PID to supplied pidfile\n" \
 					"    -t                Enable test mode - enter commands on stdin\n" \
 					"    -V                Print version information and exit\n" \
 					"    -h                Print this help message\n" \
