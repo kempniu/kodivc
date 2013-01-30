@@ -36,9 +36,11 @@
 #include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
 /* Constants */
@@ -77,7 +79,6 @@
 
 /* Macros */
 #define ARRAY_SIZE(array)		(sizeof(array) / sizeof(array[0]))
-#define DIE(message)			{ printf("Fatal error at %s:%d: %s\n", __FILE__, __LINE__, message); exit(1); }
 
 /* Modes of operation */
 enum mode_t {
@@ -111,6 +112,7 @@ typedef struct {
 } cmap_t;
 
 /* Names of modes of operation */
+const char*	loglevels[] = { "EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG" };
 const char*	modes[] = { "normal", "spelling" };
 
 /* Global configuration variables */
@@ -183,6 +185,33 @@ cleanup(void)
 	}
 	free(cmap);
 
+}
+
+void
+vprint_log(const int level, const char *format, va_list args)
+{
+	printf("%s: ", loglevels[level]);
+	vprintf(format, args);
+	printf("\n");
+}
+
+void
+print_log(const int level, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	vprint_log(level, format, args);
+	va_end(args);
+}
+
+void
+die(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	vprint_log(LOG_CRIT, format, args);
+	va_end(args);
+	exit(1);
 }
 
 void
@@ -338,7 +367,7 @@ send_json_rpc_request(const char *method, const char *params, char **dst)
 
 	/* Initialize libcurl */
 	if ((curl = curl_easy_init()) == NULL)
-		DIE("Error initializing libcurl\n");
+		die("Error initializing libcurl");
 
 	/* Set request options */
 	curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -1060,27 +1089,17 @@ main(int argc, char *argv[])
 
 	/* Check if language model files were properly installed */
 	if (access(MODEL_HMM, R_OK) == -1)
-	{
-		printf("Hidden Markov acoustic model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_HMM);
-		exit(1);
-	}
+		die("Hidden Markov acoustic model not found at %s. Please check your Pocketsphinx installation.", MODEL_HMM);
 
 	if (access(MODEL_LM, R_OK) == -1)
-	{
-		printf("xbmcvc language model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_LM);
-		exit(1);
-	}
+		die("xbmcvc language model not found at %s. Please check your Pocketsphinx installation.", MODEL_LM);
 
 	for (i=0; i<MODE_NONE; i++)
 	{
 		dict = malloc(strlen(MODELDIR "/lm/en/xbmcvc/.dic") + strlen(modes[i]) + 1);
 		sprintf(dict, MODELDIR "/lm/en/xbmcvc/%s.dic", modes[i]);
 		if (access(dict, R_OK) == -1)
-		{
-			printf("xbmcvc dictionary %s not found. Please check your xbmcvc installation.\n", dict);
-			free(dict);
-			exit(1);
-		}
+			die("xbmcvc dictionary %s not found. Please check your xbmcvc installation.", dict);
 		free(dict);
 	}
 
@@ -1090,20 +1109,11 @@ main(int argc, char *argv[])
 	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
 
 	if (xbmc_version == -2)
-	{
-		printf("Unable to connect to XBMC running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
-		exit(1);
-	}
+		die("Unable to connect to XBMC running at %s:%s - aborting", config_json_rpc_host, config_json_rpc_port);
 	else if (xbmc_version == -1)
-	{
-		printf("Unable to determine XBMC version running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
-		exit(1);
-	}
+		die("Unable to determine XBMC version running at %s:%s - aborting", config_json_rpc_host, config_json_rpc_port);
 	else if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
-	{
-		printf("XBMC version %d, which is running at %s:%s, is unsupported - aborting\n", xbmc_version, config_json_rpc_host, config_json_rpc_port);
-		exit(1);
-	}
+		die("XBMC version %d, which is running at %s:%s, is unsupported - aborting", xbmc_version, config_json_rpc_host, config_json_rpc_port);
 
 	/* Setup action database */
 	initialize_actions();
@@ -1133,7 +1143,7 @@ main(int argc, char *argv[])
 
 		/* Suppress verbose messages from pocketsphinx */
 		if (freopen("/dev/null", "w", stderr) == NULL)
-			DIE("Failed to redirect stderr");
+			die("Failed to redirect stderr");
 
 		/* Initialize pocketsphinx */
 		config = cmd_ln_init(NULL, ps_args(), TRUE,
@@ -1142,24 +1152,24 @@ main(int argc, char *argv[])
 			"-dict", MODEL_DICT,
 			NULL);
 		if (config == NULL)
-			DIE("Error creating pocketsphinx configuration");
+			die("Error creating pocketsphinx configuration");
 
 		ps = ps_init(config);
 		if (ps == NULL)
-			DIE("Error initializing pocketsphinx");
+			die("Error initializing pocketsphinx");
 
 		/* Open audio device for recording */
 		if ((ad = ad_open_dev(config_alsa_device, 16000)) == NULL)
-			DIE("Failed to open audio device");
+			die("Failed to open audio device");
 		/* Initialize continous listening module */
 		if ((cont = cont_ad_init(ad, ad_read)) == NULL)
-			DIE("Failed to initialize voice activity detection\n");
+			die("Failed to initialize voice activity detection");
 		/* Start recording */
 		if (ad_start_rec(ad) < 0)
-			DIE("Failed to start recording\n");
+			die("Failed to start recording");
 		/* Calibrate voice detection */
 		if (cont_ad_calib(cont) < 0)
-			DIE("Failed to calibrate voice activity detection\n");
+			die("Failed to calibrate voice activity detection");
 
 		/* Intercept SIGINT and SIGTERM for proper cleanup */
 		signal(SIGINT, set_exit_flag);
@@ -1183,14 +1193,14 @@ main(int argc, char *argv[])
 				break;
 
 			if (k < 0)
-				DIE("Failed to read audio\n");
+				die("Failed to read audio");
 
 			/* Start collecting utterance data */
 			if (ps_start_utt(ps, NULL) < 0)
-				DIE("Failed to start utterance\n");
+				die("Failed to start utterance");
 
 			if ((result = ps_process_raw(ps, adbuf, k, FALSE, FALSE)) < 0)
-				DIE("Failed to process utterance data\n");
+				die("Failed to process utterance data");
 
 			/* Save timestamp for initial utterance samples */
 			timestamp = cont->read_ts;
@@ -1200,7 +1210,7 @@ main(int argc, char *argv[])
 			{
 
 				if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
-					DIE("Failed to read audio\n");
+					die("Failed to read audio");
 
 				if (k == 0)
 				{
@@ -1252,7 +1262,7 @@ main(int argc, char *argv[])
 
 			/* Resume recording */
 			if (ad_start_rec(ad) < 0)
-				DIE("Failed to start recording\n");
+				die("Failed to start recording");
 
 		}
 
