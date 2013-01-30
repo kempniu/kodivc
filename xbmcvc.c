@@ -37,6 +37,7 @@
 #include <getopt.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -153,11 +154,35 @@ set_exit_flag(int signal)
 }
 
 void
-cleanup_options(void)
+cleanup(void)
 {
+
+	int i;
+
+	/* Configuration */
 	free(config_json_rpc_host);
 	free(config_json_rpc_port);
 	free(config_alsa_device);
+
+	/* Actions database */
+	for (i=0; i<actions_count; i++)
+	{
+		free(actions[i]->word);
+		free(actions[i]->method);
+		free(actions[i]->params);
+		free(actions[i]->req);
+		free(actions[i]);
+	}
+	free(actions);
+	
+	/* Command to character mapping */
+	for (i=0; i<cmap_count; i++)
+	{
+		free(cmap[i]->string);
+		free(cmap[i]);
+	}
+	free(cmap);
+
 }
 
 void
@@ -233,10 +258,7 @@ parse_options(int argc, char *argv[])
 	}
 
 	if (quit)
-	{
-		cleanup_options();
 		exit(0);
-	}
 
 }
 
@@ -518,21 +540,6 @@ initialize_actions(void)
 
 	}
 
-}
-
-void
-cleanup_actions()
-{
-	int i;
-	for (i=0; i<actions_count; i++)
-	{
-		free(actions[i]->word);
-		free(actions[i]->method);
-		free(actions[i]->params);
-		free(actions[i]->req);
-		free(actions[i]);
-	}
-	free(actions);
 }
 
 void
@@ -825,18 +832,6 @@ find_cmap(const char *string)
 }
 
 void
-cleanup_cmap(void)
-{
-	int i;
-	for (i=0; i<cmap_count; i++)
-	{
-		free(cmap[i]->string);
-		free(cmap[i]);
-	}
-	free(cmap);
-}
-
-void
 perform_spelling(const char *hyp)
 {
 
@@ -1057,6 +1052,9 @@ main(int argc, char *argv[])
 	int32		result;
 	const char*	hyp;
 
+	/* Register a memory-freeing routine to run upon exiting */
+	atexit(cleanup);
+
 	/* Parse command line options */
 	parse_options(argc, argv);
 
@@ -1064,14 +1062,12 @@ main(int argc, char *argv[])
 	if (access(MODEL_HMM, R_OK) == -1)
 	{
 		printf("Hidden Markov acoustic model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_HMM);
-		cleanup_options();
 		exit(1);
 	}
 
 	if (access(MODEL_LM, R_OK) == -1)
 	{
 		printf("xbmcvc language model not found at %s. Please check your Pocketsphinx installation.\n", MODEL_LM);
-		cleanup_options();
 		exit(1);
 	}
 
@@ -1083,7 +1079,6 @@ main(int argc, char *argv[])
 		{
 			printf("xbmcvc dictionary %s not found. Please check your xbmcvc installation.\n", dict);
 			free(dict);
-			cleanup_options();
 			exit(1);
 		}
 		free(dict);
@@ -1097,19 +1092,16 @@ main(int argc, char *argv[])
 	if (xbmc_version == -2)
 	{
 		printf("Unable to connect to XBMC running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
-		cleanup_options();
 		exit(1);
 	}
 	else if (xbmc_version == -1)
 	{
 		printf("Unable to determine XBMC version running at %s:%s - aborting\n", config_json_rpc_host, config_json_rpc_port);
-		cleanup_options();
 		exit(1);
 	}
 	else if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
 	{
 		printf("XBMC version %d, which is running at %s:%s, is unsupported - aborting\n", xbmc_version, config_json_rpc_host, config_json_rpc_port);
-		cleanup_options();
 		exit(1);
 	}
 
@@ -1270,10 +1262,6 @@ main(int argc, char *argv[])
 		ps_free(ps);
 
 	}
-
-	cleanup_actions();
-	cleanup_cmap();
-	cleanup_options();
 
 	return 0;
 
