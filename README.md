@@ -70,6 +70,10 @@ Reading further, you'll come across the term "batch". _xbmcvc_ listens to comman
 
     Heard: "COMMAND1 COMMAND2 ... COMMANDn"
 
+### Running in daemon mode ###
+
+_xbmcvc_ can also run in the background (in so called daemon mode) so that you don't have to have a terminal open to use it. To enable daemon mode, run _xbmcvc_ with the __-d__ command line switch. Note that when enabling the daemon mode, you'll almost certainly want to enable logging (using the __-L__ command line switch) to a file or to syslog (check the usage message for details) to be able to read the messages output by _xbmcvc_. To cleanly shutdown the daemon, send a SIGINT signal to it. Another command line option that comes in handy when using daemon mode is the __-p__ option which enables you to specify a file in which _xbmcvc_ will save its PID after starting.
+
 ### Locking ###
 
 By default, _xbmcvc_ locks itself after initializing to prevent accidental usage. Say _"XBMC"_ to unlock. This has to be the first command in a batch in order to work. Whatever you say afterwards will be executed immediately after unlocking. To lock _xbmcvc_, say _"OKAY"_. The locking/unlocking feature can be disabled using the __-l__ command line switch.
