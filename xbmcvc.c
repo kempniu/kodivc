@@ -313,7 +313,7 @@ parse_options(int argc, char *argv[])
 				{
 					config_logfile = fopen(optarg, "a");
  					if (config_logfile == NULL)
-						die("Unable to open logfile %s - aborting", optarg);
+						die("Unable to open logfile %s", optarg);
 				}
 				break;
 
@@ -347,7 +347,7 @@ parse_options(int argc, char *argv[])
 	}
 
 	if (config_test_mode && config_daemon)
-		die("Daemon mode and test mode are mutually exclusive - aborting");
+		die("Daemon mode and test mode are mutually exclusive");
 
 	if (quit)
 		exit(0);
@@ -1202,11 +1202,11 @@ main(int argc, char *argv[])
 	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
 
 	if (xbmc_version == -2)
-		die("Unable to connect to XBMC running at %s:%s - aborting", config_json_rpc_host, config_json_rpc_port);
+		die("Unable to connect to XBMC running at %s:%s", config_json_rpc_host, config_json_rpc_port);
 	else if (xbmc_version == -1)
-		die("Unable to determine XBMC version running at %s:%s - aborting", config_json_rpc_host, config_json_rpc_port);
+		die("Unable to determine XBMC version running at %s:%s", config_json_rpc_host, config_json_rpc_port);
 	else if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
-		die("XBMC version %d, which is running at %s:%s, is unsupported - aborting", xbmc_version, config_json_rpc_host, config_json_rpc_port);
+		die("XBMC version %d, which is running at %s:%s, is unsupported", xbmc_version, config_json_rpc_host, config_json_rpc_port);
 
 	/* Setup action database */
 	initialize_actions();
