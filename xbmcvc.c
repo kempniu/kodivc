@@ -470,6 +470,8 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 
 	/* Send JSON-RPC request */
 	result = curl_easy_perform(curl);
+	if (result != 0)
+		print_log(LOG_WARNING, "XBMC instance at %s:%s is not responding", config_json_rpc_host, config_json_rpc_port);
 
 	/* If caller provided a pointer, save response there (if it exists) */
 	if (dst && response)
@@ -668,7 +670,7 @@ perform_actions(const char* hyp)
 	int		ls = 0;
 	int		len;
 	int		matched = 0;
-	int		player_id;
+	int		player_id = -3;
 	action_t*	action;
 	action_t*	action_queued;
 	action_t*	queue[MAX_ACTIONS];
@@ -678,11 +680,6 @@ perform_actions(const char* hyp)
 	char*		params_fmt;
 	const char*	param;
 	int		expect_arg = 0;
-
-	/* Get player ID via JSON-RPC */
-	player_id = get_json_rpc_response_int("Player.GetActivePlayers", NULL, "playerid");
-	if (player_id == -2)
-		die("XBMC instance at %s:%s is no longer responding", config_json_rpc_host, config_json_rpc_port);
 
 	/* Prepare action queue from words in hypothesis */
 	do
@@ -710,8 +707,11 @@ perform_actions(const char* hyp)
 					/* Check if action word matches spoken word */
 					if (strcmp(action->word, action_string) == 0)
 					{
+						/* Cache player ID if current action needs it */
+						if (action->needs_player_id && player_id == -3)
+							player_id = get_json_rpc_response_int("Player.GetActivePlayers", NULL, "playerid");
 						/* Ignore action if it requires a player ID and we don't have a player ID */
-						if ( (action->needs_player_id && player_id != -1) || !action->needs_player_id )
+						if ( (action->needs_player_id && player_id >= 0) || !action->needs_player_id )
 						{
 							/* Is this a repeating action? */
 							if (action->repeats > 1)
