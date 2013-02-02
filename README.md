@@ -84,8 +84,8 @@ _xbmcvc_ always starts in normal mode. This is the mode you'll probably use the 
 
 #### Navigation commands ####
 
-* _UP_
-* _DOWN_
+* _UPWARDS_
+* _DOWNWARDS_
 * _LEFT_
 * _RIGHT_
 * _SELECT_
@@ -135,14 +135,14 @@ Some commands can be executed multiple times by using one of the following multi
 
 Below is an exhaustive list of commands which can be used with a multiplier:
 
-* _UP_
-* _DOWN_
+* _UPWARDS_
+* _DOWNWARDS_
 * _LEFT_
 * _RIGHT_
 * _NEXT_
 * _PREVIOUS_
 
-To use a multiplier, say it after the command, e.g. _"NEXT FOUR"_ will skip four items ahead, _"DOWN THREE RIGHT FIVE"_ will go down three times and then right five times etc.
+To use a multiplier, say it after the command, e.g. _"NEXT FOUR"_ will skip four items ahead, _"DOWNWARDS THREE RIGHT FIVE"_ will go down three times and then right five times etc.
 
 ### Spelling mode (Frodo onwards only) ###
 

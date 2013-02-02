@@ -140,7 +140,7 @@ int		config_test_mode = 0;
 /* Action database */
 action_t**	actions = NULL;
 int		actions_count = 0;
-const char*	repeatable[] = { "DOWN", "LEFT", "NEXT", "PREVIOUS", "RIGHT", "UP" };
+const char*	repeatable[] = { "DOWNWARDS", "LEFT", "NEXT", "PREVIOUS", "RIGHT", "UPWARDS" };
 int		repeatable_size = ARRAY_SIZE(repeatable);
 const char*	repeat_args[] = { "ALL:all", "ONE:one", "OFF:off", "cycle" };
 int		repeat_args_size = ARRAY_SIZE(repeat_args);
@@ -602,14 +602,14 @@ initialize_actions(void)
 
 	/* General actions */
 	register_action("BACK", "Input.Back", NULL, NULL, 0, 1, 0, 0);
-	register_action("DOWN", "Input.Down", NULL, NULL, 0, 1, 0, 0);
+	register_action("DOWNWARDS", "Input.Down", NULL, NULL, 0, 1, 0, 0);
 	register_action("HOME", "Input.Home", NULL, NULL, 0, 1, 0, 0);
 	register_action("LEFT", "Input.Left", NULL, NULL, 0, 1, 0, 0);
 	register_action("MUTE", "Application.SetMute", "\"mute\": true", NULL, 0, 1, 0, 0);
 	register_action("RIGHT", "Input.Right", NULL, NULL, 0, 1, 0, 0);
 	register_action("SELECT", "Input.Select", NULL, NULL, 0, 1, 0, 0);
 	register_action("UNMUTE", "Application.SetMute", "\"mute\": false", NULL, 0, 1, 0, 0);
-	register_action("UP", "Input.Up", NULL, NULL, 0, 1, 0, 0);
+	register_action("UPWARDS", "Input.Up", NULL, NULL, 0, 1, 0, 0);
 	register_action("VOLUME", "Application.SetVolume", "\"volume\":%s", volume_args, volume_args_size, 1, 0, 1);
 
 	/* Repeating actions */

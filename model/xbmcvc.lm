@@ -1,4 +1,4 @@
-Language model created by QuickLM on Tue Jan 29 06:27:00 EST 2013
+Language model created by QuickLM on Sat Feb  2 00:50:36 EST 2013
 Copyright (c) 1996-2010 Carnegie Mellon University and Alexander I. Rudnicky
 
 The model is in standard ARPA format, designed by Doug Paul while he was at MITRE.
@@ -31,7 +31,7 @@ ngram 3=90
 -2.7324 DELETE -0.2218
 -2.7324 DELTA -0.2218
 -2.7324 DOT -0.2218
--2.7324 DOWN -0.2218
+-2.7324 DOWNWARDS -0.2218
 -2.7324 ECHO -0.2218
 -2.7324 EIGHT -0.2218
 -2.7324 EIGHTY -0.2218
@@ -95,8 +95,8 @@ ngram 3=90
 -2.7324 UNIFORM -0.2218
 -2.7324 UNMUTE -0.2218
 -2.7324 UNSHUFFLE -0.2218
--2.7324 UP -0.2218
 -2.7324 UPPER -0.2218
+-2.7324 UPWARDS -0.2218
 -2.7324 VICTOR -0.2218
 -2.7324 VIDEOS -0.2218
 -2.7324 VOLUME -0.2218
@@ -123,7 +123,7 @@ ngram 3=90
 -2.2553 <s> DELETE 0.0000
 -2.2553 <s> DELTA 0.0000
 -2.2553 <s> DOT 0.0000
--2.2553 <s> DOWN 0.0000
+-2.2553 <s> DOWNWARDS 0.0000
 -2.2553 <s> ECHO 0.0000
 -2.2553 <s> EIGHT 0.0000
 -2.2553 <s> EIGHTY 0.0000
@@ -187,8 +187,8 @@ ngram 3=90
 -2.2553 <s> UNIFORM 0.0000
 -2.2553 <s> UNMUTE 0.0000
 -2.2553 <s> UNSHUFFLE 0.0000
--2.2553 <s> UP 0.0000
 -2.2553 <s> UPPER 0.0000
+-2.2553 <s> UPWARDS 0.0000
 -2.2553 <s> VICTOR 0.0000
 -2.2553 <s> VIDEOS 0.0000
 -2.2553 <s> VOLUME 0.0000
@@ -213,7 +213,7 @@ ngram 3=90
 -0.3010 DELETE </s> -0.3010
 -0.3010 DELTA </s> -0.3010
 -0.3010 DOT </s> -0.3010
--0.3010 DOWN </s> -0.3010
+-0.3010 DOWNWARDS </s> -0.3010
 -0.3010 ECHO </s> -0.3010
 -0.3010 EIGHT </s> -0.3010
 -0.3010 EIGHTY </s> -0.3010
@@ -277,8 +277,8 @@ ngram 3=90
 -0.3010 UNIFORM </s> -0.3010
 -0.3010 UNMUTE </s> -0.3010
 -0.3010 UNSHUFFLE </s> -0.3010
--0.3010 UP </s> -0.3010
 -0.3010 UPPER </s> -0.3010
+-0.3010 UPWARDS </s> -0.3010
 -0.3010 VICTOR </s> -0.3010
 -0.3010 VIDEOS </s> -0.3010
 -0.3010 VOLUME </s> -0.3010
@@ -305,7 +305,7 @@ ngram 3=90
 -0.3010 <s> DELETE </s>
 -0.3010 <s> DELTA </s>
 -0.3010 <s> DOT </s>
--0.3010 <s> DOWN </s>
+-0.3010 <s> DOWNWARDS </s>
 -0.3010 <s> ECHO </s>
 -0.3010 <s> EIGHT </s>
 -0.3010 <s> EIGHTY </s>
@@ -369,8 +369,8 @@ ngram 3=90
 -0.3010 <s> UNIFORM </s>
 -0.3010 <s> UNMUTE </s>
 -0.3010 <s> UNSHUFFLE </s>
--0.3010 <s> UP </s>
 -0.3010 <s> UPPER </s>
+-0.3010 <s> UPWARDS </s>
 -0.3010 <s> VICTOR </s>
 -0.3010 <s> VIDEOS </s>
 -0.3010 <s> VOLUME </s>
