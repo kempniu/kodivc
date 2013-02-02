@@ -58,7 +58,7 @@ After a successful installation, you should be able to run _xbmcvc_ by executing
 
 At startup, _xbmcvc_ will initialize the speech recognition library and, after successfully self-calibrating to properly tell silence and speech apart, it will start listening to your commands - if everything went fine, you should get the _Ready for listening!_ message. From the moment you get that message just speak to the microphone (see below for valid commands) - that is all it takes to use the program.
 
-If you are trying to control an XBMC instance installed on a different machine than the one you're running _xbmcvc_ on (or your XBMC listens on a non-standard port), pass the correct hostname and port number to _xbmcvc_ via the __-H__ and __-P__ command line switches, respectively.
+If you are trying to control an XBMC instance installed on a different machine than the one you're running _xbmcvc_ on (or your XBMC listens on a non-standard port), pass the correct hostname and port number to _xbmcvc_ via the __-H__ and __-P__ command line switches, respectively. If you have set a username and a password for JSON-RPC in XBMC, pass them to _xbmcvc_ via the __-u__ and __-p__ command line switches, respectively.
 
 By default, _xbmcvc_ will try to capture speech from the _default_ ALSA device. If that doesn't work for you, you can specify the ALSA device you want to capture speech from using the __-D__ command line switch.
 
@@ -72,7 +72,7 @@ Reading further, you'll come across the term "batch". _xbmcvc_ listens to comman
 
 ### Running in daemon mode ###
 
-_xbmcvc_ can also run in the background (in so called daemon mode) so that you don't have to have a terminal open to use it. To enable daemon mode, run _xbmcvc_ with the __-d__ command line switch. Note that when enabling the daemon mode, you'll almost certainly want to enable logging (using the __-L__ command line switch) to a file or to syslog (check the usage message for details) to be able to read the messages output by _xbmcvc_. To cleanly shutdown the daemon, send a SIGINT signal to it. Another command line option that comes in handy when using daemon mode is the __-p__ option which enables you to specify a file in which _xbmcvc_ will save its PID after starting.
+_xbmcvc_ can also run in the background (in so called daemon mode) so that you don't have to have a terminal open to use it. To enable daemon mode, run _xbmcvc_ with the __-d__ command line switch. Note that when enabling the daemon mode, you'll almost certainly want to enable logging (using the __-L__ command line switch) to a file or to syslog (check the usage message for details) to be able to read the messages output by _xbmcvc_. To cleanly shutdown the daemon, send a SIGINT signal to it. Another command line option that comes in handy when using daemon mode is the __-r__ option which enables you to specify a file in which _xbmcvc_ will save its PID after starting.
 
 ### Locking ###
 

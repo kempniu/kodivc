@@ -49,20 +49,23 @@
 /* Constants */
 #define VERSION				"0.4"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H <hostname> ] [ -P <port> ] [ -d ] [ -D <device> ] [ -l ]\n" \
-					"              [ -L <file>|syslog ] [ -n ] [ -p <pidfile> ] [ -t ] [ -V ] [ -h ]\n" \
+					"Usage: xbmcvc [ -H <host> ] [ -P <port> ] [ -u <username> ] [ -p <password> ]\n" \
+					"              [ -d ] [ -D <device> ] [ -l ] [ -L <file>|syslog ] [ -n ]\n" \
+					"              [ -r <pidfile> ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
-					"    -H <hostname>     Hostname or IP address of the XBMC instance you want\n" \
+					"    -H <host>         Hostname or IP address of the XBMC instance you want\n" \
 					"                      to control (default: localhost)\n" \
 					"    -P <port>         Port number the XBMC instance you want to control\n" \
 					"                      is listening on (default: 8080)\n" \
+					"    -u <username>     JSON-RPC username (only required if set in XBMC)\n" \
+					"    -p <password>     JSON-RPC password (only required if set in XBMC)\n" \
 					"    -d                Run in daemon mode\n" \
 					"    -D <device>       Name of ALSA device to capture speech from\n" \
 					"    -l                Disable locking/unlocking\n" \
 					"    -L <file>|syslog  Enable logging to file (supply path)\n" \
 					"                      or to syslog (supply \"syslog\")\n" \
 					"    -n                Disable GUI notifications\n" \
-					"    -p <pidfile>      Write PID to supplied pidfile\n" \
+					"    -r <pidfile>      Write PID to supplied pidfile\n" \
 					"    -t                Enable test mode - enter commands on stdin\n" \
 					"    -V                Print version information and exit\n" \
 					"    -h                Print this help message\n" \
@@ -73,6 +76,7 @@
 #define JSON_RPC_DEFAULT_HOST		"localhost"
 #define JSON_RPC_DEFAULT_PORT		8080
 #define JSON_RPC_URL			"http://%s:%s/jsonrpc"
+#define JSON_RPC_URL_AUTH		"http://%s:%s@%s:%s/jsonrpc"
 #define JSON_RPC_POST			"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"id\":1}"
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
 #define MAX_ACTIONS			5
@@ -128,6 +132,8 @@ const char*	modes[] = { "normal", "spelling" };
 /* Global configuration variables */
 char*		config_json_rpc_host;
 char*		config_json_rpc_port;
+char*		config_json_rpc_username;
+char*		config_json_rpc_password;
 int		config_daemon = 0;
 char*		config_alsa_device;
 int		config_locking = 1;
@@ -188,6 +194,8 @@ cleanup(void)
 	/* Configuration */
 	free(config_json_rpc_host);
 	free(config_json_rpc_port);
+	free(config_json_rpc_username);
+	free(config_json_rpc_password);
 	free(config_alsa_device);
 	free(config_pidfile);
 
@@ -273,6 +281,8 @@ parse_options(int argc, char* argv[])
 	/* Initialize default values */
 	config_json_rpc_host = malloc(strlen(JSON_RPC_DEFAULT_HOST) + 1);
 	config_json_rpc_port = malloc(6);
+	config_json_rpc_username = NULL;
+	config_json_rpc_password = NULL;
 	config_alsa_device = NULL;
 	config_logfile = NULL;
 	config_pidfile = NULL;
@@ -281,7 +291,7 @@ parse_options(int argc, char* argv[])
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
-	while ((option = getopt(argc, argv, "H:P:dD:lL:np:tVh")) != -1 && !quit)
+	while ((option = getopt(argc, argv, "H:P:u:p:dD:lL:nr:tVh")) != -1 && !quit)
 	{
 		switch(option)
 		{
@@ -295,6 +305,18 @@ parse_options(int argc, char* argv[])
 			/* XBMC port */
 			case 'P':
 				snprintf(config_json_rpc_port, 6, "%s", optarg);
+				break;
+
+			/* XBMC username */
+			case 'u':
+				config_json_rpc_username = malloc(strlen(optarg) + 1);
+				sprintf(config_json_rpc_username, "%s", optarg);
+				break;
+
+			/* XBMC password */
+			case 'p':
+				config_json_rpc_password = malloc(strlen(optarg) + 1);
+				sprintf(config_json_rpc_password, "%s", optarg);
 				break;
 
 			/* Daemon mode */
@@ -334,7 +356,7 @@ parse_options(int argc, char* argv[])
 				break;
 
 			/* Pidfile */
-			case 'p':
+			case 'r':
 				if (access(optarg, R_OK) == 0)
 					die("Pidfile %s already exists", optarg);
 				pidfile = fopen(optarg, "w");
@@ -370,9 +392,15 @@ parse_options(int argc, char* argv[])
 		}
 	}
 
+	/* Error checks */
 	if (config_test_mode && config_daemon)
 		die("Daemon mode and test mode are mutually exclusive");
+	if (config_json_rpc_username && !config_json_rpc_password)
+		die("Password must be provided along with username");
+	if (config_json_rpc_password && !config_json_rpc_username)
+		die("Username must be provided along with password");
 
+	/* Quit if appropriate */
 	if (quit)
 		exit(0);
 
@@ -433,8 +461,26 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 	struct curl_slist*	headers = NULL;
 
 	/* Prepare JSON-RPC URL  */
-	url = malloc(strlen(JSON_RPC_URL) + strlen(config_json_rpc_host) + strlen(config_json_rpc_port));
-	sprintf(url, JSON_RPC_URL, config_json_rpc_host, config_json_rpc_port);
+	if (config_json_rpc_username && config_json_rpc_password)
+	{
+		url = malloc(
+			  strlen(JSON_RPC_URL_AUTH)
+			+ strlen(config_json_rpc_username)
+			+ strlen(config_json_rpc_password)
+			+ strlen(config_json_rpc_host)
+			+ strlen(config_json_rpc_port)
+		);
+		sprintf(url, JSON_RPC_URL_AUTH, config_json_rpc_username, config_json_rpc_password, config_json_rpc_host, config_json_rpc_port);
+	}
+	else
+	{
+		url = malloc(
+			  strlen(JSON_RPC_URL)
+			+ strlen(config_json_rpc_host)
+			+ strlen(config_json_rpc_port)
+		);
+		sprintf(url, JSON_RPC_URL, config_json_rpc_host, config_json_rpc_port);
+	}
 
 	/* Prepare POST data with or without parameters */
 	if (params == NULL)
