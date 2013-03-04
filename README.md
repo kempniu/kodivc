@@ -263,7 +263,7 @@ I'm always happy to hear feedback. If you encounter a problem with _xbmcvc_ or y
 
         dpkg -s xbmcvc libsphinxbase1 libpocketsphinx1 | grep '\(Package\|Version\)'
 
-*   If available (must be enabled explicitly using the __-L__ command line switch), attach the log file to the report.
+*   If available (must be enabled explicitly using the __-L__ command line switch), attach the log file to the report. If you didn't enable logging but you can still get hold of the messages output by _xbmcvc_ to the console before the crash, please save them to a file and attach that file to the report.
 *   If you experienced a segfault, please generate a backtrace and attach it to the report. _gdb_ is required to do that. In XBMCbuntu / Ubuntu you can install _gdb_ by running the following command:
 
         sudo apt-get install gdb
