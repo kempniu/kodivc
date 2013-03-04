@@ -33,7 +33,9 @@
 #include <pocketsphinx.h>
 
 /* Other headers */
+#include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <ctype.h>
 #include <getopt.h>
@@ -1207,6 +1209,7 @@ int
 main(int argc, char* argv[])
 {
 
+	struct rlimit	core_limit;
 	int		pid;
 	int		i;
 	char*		dict;
@@ -1221,6 +1224,11 @@ main(int argc, char* argv[])
 	int32		result;
 	const char*	hyp;
 
+	/* Enable core dumps */
+	core_limit.rlim_cur = RLIM_INFINITY;
+	core_limit.rlim_max = RLIM_INFINITY;
+	setrlimit(RLIMIT_CORE, &core_limit);
+	
 	/* Register a memory-freeing routine to run upon exiting */
 	atexit(cleanup);
 
@@ -1243,8 +1251,8 @@ main(int argc, char* argv[])
 		umask(0);
 		if (setsid() == -1)
 			die("Unable to create a new session for child process");
-		if (chdir("/") == -1)
-			die("Unable to change directory to /");
+		if (chdir("/tmp") == -1)
+			die("Unable to change directory to /tmp");
 		if (freopen("/dev/null", "r", stdin) == NULL)
 			die("Failed to redirect stdin");
 		if (freopen("/dev/null", "w", stdout) == NULL)

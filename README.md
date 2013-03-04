@@ -255,5 +255,24 @@ In normal mode, _xbmcvc_ will perform a maximum of 5 actions at a time to avoid 
 Feedback
 --------
 
-I'm always happy to hear feedback. If you have a problem with _xbmcvc_ or you want to share an idea for a new feature, feel free to [create an issue](https://github.com/kempniu/xbmcvc/issues) at GitHub. You can also [catch me on Twitter](http://twitter.com/kempniu).
+I'm always happy to hear feedback. If you encounter a problem with _xbmcvc_ or you want to share an idea for a new feature, feel free to [create an issue](https://github.com/kempniu/xbmcvc/issues) at GitHub. Here are some tips for creating a useful bug report:
+
+*   Be as exhaustive as possible.
+*   If possible, describe the steps required to reproduce the bug.
+*   Include version information for _xbmcvc_, _sphinxbase_ and _pocketsphinx_ in the report. In XBMCbuntu / Ubuntu you can use the following command to retrieve the relevant information:
+
+        dpkg -s xbmcvc libsphinxbase1 libpocketsphinx1 | grep '\(Package\|Version\)'
+
+*   If available (must be enabled explicitly using the __-L__ command line switch), attach the log file to the report.
+*   If you experienced a segfault, please generate a backtrace and attach it to the report. _gdb_ is required to do that. In XBMCbuntu / Ubuntu you can install _gdb_ by running the following command:
+
+        sudo apt-get install gdb
+
+    _xbmcvc_ generates core dumps by default, so all that is required to generate a backtrace is running the following command after _xbmcvc_ crashes:
+
+        gdb --batch --se xbmcvc --core core -ex 'bt full' > xbmcvc-backtrace.txt 2>&1
+
+    The backtrace will be written to file _xbmcvc-backtrace.txt_. Ensure your core dump is named _core_ - it differs between systems and thus the core dump may be placed in a file like _core.12345_ or similar - just supply the proper core dump file name to _gdb_ using the __--core__ option. Please note that if the segfault happened while _xbmcvc_ was running in daemon mode, the core dump will be placed in the _/tmp_ directory.
+
+If you don't have a GitHub account and you don't really want to create one, feel free to post in the [_xbmcvc_ thread at the XBMC forums](http://forum.xbmc.org/showthread.php?tid=123621) or [catch me on Twitter](http://twitter.com/kempniu).
 

@@ -4,7 +4,7 @@ LIBS=`pkg-config --cflags --libs pocketsphinx sphinxbase` -lcurl
 GITVERSION=`git log --oneline 2>/dev/null | cut -d' ' -f1 | head -1`
 
 all:
-	gcc -o $(EXECUTABLE) $(EXECUTABLE).c -DGITVERSION=\"$(GITVERSION)\" -DMODELDIR=\"$(MODELDIR)\" $(LIBS)
+	gcc -g -o $(EXECUTABLE) $(EXECUTABLE).c -DGITVERSION=\"$(GITVERSION)\" -DMODELDIR=\"$(MODELDIR)\" $(LIBS)
 
 clean:
 	rm -f $(EXECUTABLE)
