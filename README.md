@@ -99,6 +99,7 @@ _xbmcvc_ always starts in normal mode. This is the mode you'll probably use the 
 * _MUSIC_*
 * _PROGRAMS_*
 * _SETTINGS_*
+* _FAVORITES_*
 
 _NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo) onwards._
 
