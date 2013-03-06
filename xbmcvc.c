@@ -682,6 +682,7 @@ initialize_actions(void)
 			break;
 
 		case XBMC_VERSION_FRODO:
+		default:
 			/* Player actions */
 			register_action("MENU", "Input.ShowOSD", NULL, NULL, 0, 1, 0, 0);
 			register_action("NEXT", "Player.GoTo", "\"to\":\"next\"", NULL, 0, 1, 1, 0);
@@ -1287,8 +1288,10 @@ main(int argc, char* argv[])
 		die("Unable to connect to XBMC running at %s:%s", config_json_rpc_host, config_json_rpc_port);
 	else if (xbmc_version == -1)
 		die("Unable to determine XBMC version running at %s:%s", config_json_rpc_host, config_json_rpc_port);
-	else if (xbmc_version < XBMC_VERSION_MIN || xbmc_version > XBMC_VERSION_MAX)
+	else if (xbmc_version < XBMC_VERSION_MIN)
 		die("XBMC version %d, which is running at %s:%s, is unsupported", xbmc_version, config_json_rpc_host, config_json_rpc_port);
+ 	else if (xbmc_version > XBMC_VERSION_MAX)
+		print_log(LOG_WARNING, "Support for XBMC version %d, which is running at %s:%s, is EXPERIMENTAL", xbmc_version, config_json_rpc_host, config_json_rpc_port);
 
 	/* Setup action database */
 	initialize_actions();
