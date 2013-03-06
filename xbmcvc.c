@@ -694,6 +694,7 @@ initialize_actions(void)
 			register_action("STOP", "Player.Stop", NULL, NULL, 0, 1, 1, 0);
 			register_action("UNSHUFFLE", "Player.SetShuffle", "\"shuffle\":false", NULL, 0, 1, 1, 0);
 			/* Window actions */
+			register_action("FAVORITES", "GUI.ActivateWindow", "\"window\":\"favourites\"", NULL, 0, 1, 0, 0);
 			register_action("MUSIC", "GUI.ActivateWindow", "\"window\":\"music\"", NULL, 0, 1, 0, 0);
 			register_action("PICTURES", "GUI.ActivateWindow", "\"window\":\"pictures\"", NULL, 0, 1, 0, 0);
 			register_action("PROGRAMS", "GUI.ActivateWindow", "\"window\":\"programs\"", NULL, 0, 1, 0, 0);
