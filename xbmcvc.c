@@ -152,7 +152,7 @@ const char*	repeatable[] = { "DOWNWARDS", "LEFT", "NEXT", "PREVIOUS", "RIGHT", "
 int		repeatable_size = ARRAY_SIZE(repeatable);
 const char*	repeat_args[] = { "ALL:all", "ONE:one", "OFF:off", "cycle" };
 int		repeat_args_size = ARRAY_SIZE(repeat_args);
-const char*	volume_args[] = { "TEN:10", "TWENTY:20", "THIRTY:30", "FOURTY:40", "FIFTY:50", "SIXTY:60", "SEVENTY:70", "EIGHTY:80", "NINETY:90", "MAX:100" };
+const char*	volume_args[] = { "TEN:10", "TWENTY:20", "THIRTY:30", "FORTY:40", "FIFTY:50", "SIXTY:60", "SEVENTY:70", "EIGHTY:80", "NINETY:90", "MAX:100" };
 int		volume_args_size = ARRAY_SIZE(volume_args);
 
 /* Command to character mapping database */
