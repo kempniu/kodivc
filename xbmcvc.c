@@ -62,7 +62,7 @@
 					"    -u <username>     JSON-RPC username (only required if set in XBMC)\n" \
 					"    -p <password>     JSON-RPC password (only required if set in XBMC)\n" \
 					"    -d                Run in daemon mode\n" \
-					"    -D <device>       Name of ALSA device to capture speech from\n" \
+					"    -D <device>       Name of audio device to capture speech from\n" \
 					"    -l                Disable locking/unlocking\n" \
 					"    -L <file>|syslog  Enable logging to file (supply path)\n" \
 					"                      or to syslog (supply \"syslog\")\n" \
@@ -85,8 +85,9 @@
 #define SPELLING_BUFFER_SIZE		256
 #define XBMC_VERSION_EDEN		11
 #define XBMC_VERSION_FRODO		12
+#define XBMC_VERSION_GOTHAM		13
 #define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
-#define XBMC_VERSION_MAX		XBMC_VERSION_FRODO
+#define XBMC_VERSION_MAX		XBMC_VERSION_GOTHAM
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
@@ -137,7 +138,7 @@ char*		config_json_rpc_port;
 char*		config_json_rpc_username;
 char*		config_json_rpc_password;
 int		config_daemon = 0;
-char*		config_alsa_device;
+char*		config_audio_device;
 int		config_locking = 1;
 FILE*		config_logfile;
 int		config_syslog = 0;
@@ -198,7 +199,7 @@ cleanup(void)
 	free(config_json_rpc_port);
 	free(config_json_rpc_username);
 	free(config_json_rpc_password);
-	free(config_alsa_device);
+	free(config_audio_device);
 	free(config_pidfile);
 
 	/* Actions database */
@@ -285,7 +286,7 @@ parse_options(int argc, char* argv[])
 	config_json_rpc_port = malloc(6);
 	config_json_rpc_username = NULL;
 	config_json_rpc_password = NULL;
-	config_alsa_device = NULL;
+	config_audio_device = NULL;
 	config_logfile = NULL;
 	config_pidfile = NULL;
 
@@ -326,10 +327,10 @@ parse_options(int argc, char* argv[])
 				config_daemon = 1;
 				break;
 
-			/* ALSA capture device */
+			/* audio capture device */
 			case 'D':
-				config_alsa_device = realloc(config_alsa_device, strlen(optarg) + 1);
-				sprintf(config_alsa_device, "%s", optarg);
+				config_audio_device = realloc(config_audio_device, strlen(optarg) + 1);
+				sprintf(config_audio_device, "%s", optarg);
 				break;
 
 			/* Locking */
@@ -682,6 +683,7 @@ initialize_actions(void)
 			break;
 
 		case XBMC_VERSION_FRODO:
+		case XBMC_VERSION_GOTHAM:
 		default:
 			/* Player actions */
 			register_action("MENU", "Input.ShowOSD", NULL, NULL, 0, 1, 0, 0);
@@ -1341,7 +1343,7 @@ main(int argc, char* argv[])
 			die("Error initializing pocketsphinx");
 
 		/* Open audio device for recording */
-		if ((ad = ad_open_dev(config_alsa_device, 16000)) == NULL)
+		if ((ad = ad_open_dev(config_audio_device, 16000)) == NULL)
 			die("Failed to open audio device");
 		/* Initialize continous listening module */
 		if ((cont = cont_ad_init(ad, ad_read)) == NULL)
