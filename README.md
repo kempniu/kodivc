@@ -8,7 +8,7 @@ Requirements
 
 To use _xbmcvc_, the following libraries need to be installed on your system:
 
-* _pocketsphinx_ along with its prerequisite, _sphinxbase_ (both available at [CMU Sphinx downloads](http://cmusphinx.sourceforge.net/wiki/download/)); _xbmcvc_ was tested with versions 0.6+
+* _pocketsphinx_ (version 0.6 or newer) along with its prerequisite, _sphinxbase_ (both available at [CMU Sphinx downloads](http://cmusphinx.sourceforge.net/wiki/download/))
 * _libcurl_ (shipped with cURL, should be present on most systems; if that's not your case, go to the [libcurl homepage](http://curl.haxx.se/libcurl/))
 
 For _xbmcvc_ to work, you need an XBMC version which supports JSON-RPC API version 3 or higher, which means any pre-11.0 (pre-Eden) or newer version should work. Older releases (including Dharma) are not supported.
@@ -18,15 +18,38 @@ Installation
 
 ### XBMCbuntu / Ubuntu (from PPA) ###
 
-You can install the latest version of _xbmcvc_ by [accessing your XBMC box via SSH](http://wiki.xbmc.org/index.php?title=SSH) and issuing the following commands:
+You can install the latest version of _xbmcvc_ by accessing your XBMC box:
+
+* using a local console (press _CTRL+ALT+F1_ to switch from graphical mode to text mode; press _CTRL+ALT+F7_ to return to graphical mode)
+
+* remotely, using [SSH](http://wiki.xbmc.org/index.php?title=SSH)
+
+and issuing the following commands:
+
+#### XBMCbuntu Eden / XBMCbuntu Frodo / Ubuntu 12.10 (Quantal Quetzal) and older ####
 
     sudo add-apt-repository -y ppa:dhuggins/cmusphinx
     sudo add-apt-repository -y ppa:kempniu/xbmcvc
-    sudo perl -pi -e 's/\w+ main$/lucid main/;' /etc/apt/sources.list.d/{dhuggins-cmusphinx,kempniu-xbmcvc}-*.list
+    sudo sed -i 's|[a-z]\+ main|lucid main|;' /etc/apt/sources.list.d/{dhuggins-cmusphinx,kempniu-xbmcvc}-*.list
     sudo apt-get update
     sudo apt-get -y install xbmcvc
 
-The third line is required for now as there are no _pocketsphinx_ packages published for neither Ubuntu 11.10 (which Eden XBMCbuntu is based on) nor Ubuntu 12.04 LTS (which Frodo XBMCbuntu is based on), so you have to force those systems to use packages built for Ubuntu 10.04 LTS.
+__NOTE:__ The English language model used by _xbmcvc_ hasn't been shipped with _pocketsphinx_ until version 0.6, while official _pocketsphinx_ packages for these systems were built from version 0.5.1. The solution is to use version 0.6 packages provided by [David Huggins-Daines' PPA](https://launchpad.net/~dhuggins/+archive/cmusphinx). Unfortunately, the last Ubuntu release that these packages were built for is 10.04 (Lucid Lynx), so you have to force your system to use packages built for Ubuntu 10.04 (the `sed` call above takes care of that).
+
+#### XBMCbuntu Gotham / Ubuntu 13.04 (Raring Ringtail) and newer ####
+
+    sudo add-apt-repository -y universe
+    sudo add-apt-repository -y ppa:kempniu/xbmcvc
+    sudo apt-get update
+    sudo apt-get -y install xbmcvc
+
+__NOTE:__ Official _pocketsphinx_ packages for Ubuntu 13.04 and newer are compiled with PulseAudio support enabled and ALSA support disabled. However, XBMCbuntu does __not__ use PulseAudio by default. To test _xbmcvc_ with XBMCbuntu Gotham, you have to install and start PulseAudio. Here is a quick-and-dirty way to do it (for your own good, __please don't do this on a system installed on a hard disk__):
+
+    sudo rm -f /etc/apt/preferences.d/{libasound2-plugins,pulseaudio}.pref
+    sudo apt-get -y install pulseaudio
+    DISPLAY=:0 sudo -u xbmc pulseaudio &
+
+If you install XBMCbuntu Gotham on a hard disk, you'll have to properly configure PulseAudio and then configure XBMC to use PulseAudio as its sound sink (this is outside the scope of this document, but the XBMC wiki has [some useful information](http://wiki.xbmc.org/index.php?title=PulseAudio).
 
 ### Other systems (from Git) ###
 
@@ -42,12 +65,12 @@ __NOTE:__ the user running _xbmcvc_ should be allowed to access your sound card.
 _xbmcvc_ uses JSON-RPC via HTTP for passing commands to XBMC. In order for this to work, you need to go to the proper settings page in XBMC and turn _Allow control of XBMC via HTTP_ on:
 
 * in Eden, you'll find it under _System_ -> _Settings_ -> _Network_ -> _Services_
-* in Frodo, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Webserver_
+* in Frodo and Gotham, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Webserver_
 
 If you want to control your XBMC instance from another machine, make sure you also turn _Allow programs on other systems to control XBMC_ on:
 
 * in Eden, you'll find it under _System_ -> _Settings_ -> _Network_ -> _Services_
-* in Frodo, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Remote control_
+* in Frodo and Gotham, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Remote control_
 
 Usage
 -----
@@ -60,7 +83,7 @@ At startup, _xbmcvc_ will initialize the speech recognition library and, after s
 
 If you are trying to control an XBMC instance installed on a different machine than the one you're running _xbmcvc_ on (or your XBMC listens on a non-standard port), pass the correct hostname and port number to _xbmcvc_ via the __-H__ and __-P__ command line switches, respectively. If you have set a username and a password for JSON-RPC in XBMC, pass them to _xbmcvc_ via the __-u__ and __-p__ command line switches, respectively.
 
-By default, _xbmcvc_ will try to capture speech from the _default_ ALSA device. If that doesn't work for you, you can specify the ALSA device you want to capture speech from using the __-D__ command line switch.
+By default, _xbmcvc_ will try to capture speech from the _default_ audio device. If that doesn't work for you, you can specify the audio device you want to capture speech from using the __-D__ command line switch.
 
 By default, though only when controlling XBMC version 12 (Frodo) or newer, _xbmcvc_ will display GUI notifications when it hears commands or changes its mode of operation. This behavior can be disabled by using the __-n__ command line switch.
 
@@ -101,7 +124,7 @@ _xbmcvc_ always starts in normal mode. This is the mode you'll probably use the 
 * _SETTINGS_*
 * _FAVORITES_*
 
-_NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo) onwards._
+__NOTE:__ Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo) onwards.
 
 #### Player commands ####
 
@@ -115,9 +138,9 @@ _NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo
 * _UNSHUFFLE_
 * _REPEAT_ [ _ALL_ | _ONE_ | _OFF_ ]
 
-_NOTE: Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo) onwards._
+__NOTE:__ Commands marked with an asterisk (*) are only available in XBMC 12 (Frodo) onwards.
 
-_NOTE: In XBMC 12 (Frodo) onwards you can also say REPEAT without an argument to cycle through available modes._
+__NOTE:__ In XBMC 12 (Frodo) onwards you can also say REPEAT without an argument to cycle through available modes.
 
 #### Volume commands ####
 
@@ -153,40 +176,40 @@ You can use the spelling mode to input letters and digits, e.g. when performing 
 * _CANCEL_ - closes the onscreen keyboard, dismissing the provided input (similar to pressing the ESC key)
 * _NORMAL_ - switches to normal mode without closing the onscreen keyboard; this is useful if you want to input special characters which don't have an _xbmcvc_ command counterpart
 
-_NOTE: Every mode switching command has to be the **only** command in a batch in order to work._
+__NOTE:__ Every mode switching command has to be the **only** command in a batch in order to work.
 
-_NOTE: The input field is automatically cleared whenever you enter the spelling mode._ (Remember that when you initially spell some letters, then switch to normal mode to enter some fancy characters and then try to switch back to spelling mode.)
+__NOTE:__ The input field is automatically cleared whenever you enter the spelling mode. (Remember that when you initially spell some letters, then switch to normal mode to enter some fancy characters and then try to switch back to spelling mode.)
 
 #### Letters ####
 
 _xbmcvc_ uses the [NATO phonetic alphabet](http://en.wikipedia.org/wiki/NATO_phonetic_alphabet) for spelling. The reason for that is that single letter recognition is very inaccurate, which shouldn't come as much of a surprise (how often do you spell your surname over the phone and people at the other end get it wrong?). NATO phonetic alphabet usage enables _pocketsphinx_ to recognize the desired letters with much better accuracy. Here is a complete list of letter-related commands:
 
-* _**A**LPHA_
-* _**B**RAVO_
-* _**C**HARLIE_
-* _**D**ELTA_
-* _**E**CHO_
-* _**F**OXTROT_
-* _**G**OLF_
-* _**H**OTEL_
-* _**I**NDIA_
-* _**J**ULIET_
-* _**K**ILO_
-* _**L**IMA_
-* _**M**IKE_
-* _**N**OVEMBER_
-* _**O**SCAR_
-* _**P**APA_
-* _**Q**UEBEC_
-* _**R**OMEO_
-* _**S**IERRA_
-* _**T**ANGO_
-* _**U**NIFORM_
-* _**V**ICTOR_
-* _**W**HISKEY_
-* _**X**-RAY_
-* _**Y**ANKEE_
-* _**Z**ULU_
+* _ALPHA_
+* _BRAVO_
+* _CHARLIE_
+* _DELTA_
+* _ECHO_
+* _FOXTROT_
+* _GOLF_
+* _HOTEL_
+* _INDIA_
+* _JULIET_
+* _KILO_
+* _LIMA_
+* _MIKE_
+* _NOVEMBER_
+* _OSCAR_
+* _PAPA_
+* _QUEBEC_
+* _ROMEO_
+* _SIERRA_
+* _TANGO_
+* _UNIFORM_
+* _VICTOR_
+* _WHISKEY_
+* _X-RAY_
+* _YANKEE_
+* _ZULU_
 
 #### Digits ####
 
@@ -224,7 +247,7 @@ Troubleshooting
 
     You'll probably also want to disable locking for testing, so add the __-l__ switch to the command line as well.
 
-    If entering commands in test mode results in your XBMC instance properly responding to them, it means you're probably facing an ALSA issue. Most usual causes of problems are:
+    If your XBMC instance properly responds to commands entered in test mode, but doesn't react to anything you say, these are the most common causes of problems:
 
     * capturing from the wrong device,
     * capture levels set too low, too high (yes, overly high sensitivity is also a problem) or muted,
@@ -239,7 +262,9 @@ Troubleshooting
 
     just ignore them. It's a known issue with _pocketsphinx_ 0.6. These lines shouldn't appear when using _pocketsphinx_ 0.7 or newer.
 
-*   If after starting _xbmcvc_ you get a _Fatal error at xbmcvc.c:xxx: Failed to open audio device_ message, you are probably experiencing a permissions-related issue. To confirm, try running _xbmcvc_ as root - if it works fine, it means the user you're normally running _xbmcvc_ as is denied access to the audio device you're trying to capture speech from.
+*   If after starting _xbmcvc_ you get a _Failed to open audio device_ message, you are probably facing one of two issues:
+    * you're using a version of _pocketsphinx_ which uses the PulseAudio backend, but PulseAudio server isn't started,
+    * the user you're running _xbmcvc_ as is not allowed to access the audio device you're trying to capture speech from; to confirm, try running _xbmcvc_ as root - if it works fine, you're facing a permissions-related issue.
 
 *   If after starting _xbmcvc_ you get an error saying _Failed to calibrate voice activity detection_, please check your mixer levels for capturing audio.
 
@@ -259,7 +284,9 @@ Feedback
 I'm always happy to hear feedback. If you encounter a problem with _xbmcvc_ or you want to share an idea for a new feature, feel free to [create an issue](https://github.com/kempniu/xbmcvc/issues) at GitHub. Here are some tips for creating a useful bug report:
 
 *   Be as exhaustive as possible.
+
 *   If possible, describe the steps required to reproduce the bug.
+
 *   Include version information for _xbmcvc_, _sphinxbase_ and _pocketsphinx_ in the report. In XBMCbuntu / Ubuntu you can use the following command to retrieve the relevant information:
 
         dpkg -s xbmcvc libsphinxbase1 libpocketsphinx1 | grep '\(Package\|Version\)'
@@ -269,9 +296,10 @@ I'm always happy to hear feedback. If you encounter a problem with _xbmcvc_ or y
         xbmcvc -V
 
 *   If available (must be enabled explicitly using the __-L__ command line switch), attach the log file to the report. If you didn't enable logging but you can still get hold of the messages output by _xbmcvc_ to the console before the crash, please save them to a file and attach that file to the report.
+
 *   If you experienced a segfault, please generate a backtrace and attach it to the report. _gdb_ is required to do that. In XBMCbuntu / Ubuntu you can install _gdb_ by running the following command:
 
-        sudo apt-get install gdb
+        sudo apt-get -y install gdb
 
     _xbmcvc_ generates core dumps by default, so all that is required to generate a backtrace is running the following command after _xbmcvc_ crashes:
 
