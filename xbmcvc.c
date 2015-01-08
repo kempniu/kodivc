@@ -49,7 +49,7 @@
 #include <unistd.h>
 
 /* Constants */
-#define VERSION				"0.4"
+#define VERSION				"0.5"
 #define USAGE_MESSAGE			"\n" \
 					"Usage: xbmcvc [ -H <host> ] [ -P <port> ] [ -u <username> ] [ -p <password> ]\n" \
 					"              [ -d ] [ -D <device> ] [ -l ] [ -L <file>|syslog ] [ -n ]\n" \

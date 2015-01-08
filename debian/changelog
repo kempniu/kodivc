@@ -1,3 +1,9 @@
+xbmcvc (0.5-1) lucid; urgency=low
+
+  * New upstream release
+
+ -- Michał Kępień <launchpad@kempniu.pl>  Thu, 08 Jan 2015 11:21:25 +0100
+
 xbmcvc (0.4-1) lucid; urgency=low
 
   * New upstream release
