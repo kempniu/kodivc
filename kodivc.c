@@ -230,11 +230,14 @@ vprint_log(const int level, const char* format, va_list args)
 
 	time_t	now;
 	char	timestamp[32];
+	va_list	args_copy;
 
 	if (!config_daemon)
 	{
 		printf("%s: ", loglevels[level]);
-		vprintf(format, args);
+		va_copy(args_copy, args);
+		vprintf(format, args_copy);
+		va_end(args_copy);
 		printf("\n");
 	}
 
@@ -245,12 +248,16 @@ vprint_log(const int level, const char* format, va_list args)
 		/* Trim newline */
 		*(timestamp + strlen(timestamp) - 1) = '\0';
 		fprintf(config_logfile, "%s kodivc[%d]: %s: ", timestamp, getpid(), loglevels[level]);
-		vfprintf(config_logfile, format, args);
+		va_copy(args_copy, args);
+		vfprintf(config_logfile, format, args_copy);
+		va_end(args_copy);
 		fprintf(config_logfile, "\n");
 	}
 	else if (config_syslog)
 	{
-		vsyslog(level, format, args);
+		va_copy(args_copy, args);
+		vsyslog(level, format, args_copy);
+		va_end(args_copy);
 	}
 
 }
