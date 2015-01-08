@@ -86,8 +86,9 @@
 #define KODI_VERSION_EDEN		11
 #define KODI_VERSION_FRODO		12
 #define KODI_VERSION_GOTHAM		13
+#define KODI_VERSION_HELIX		14
 #define KODI_VERSION_MIN		KODI_VERSION_EDEN
-#define KODI_VERSION_MAX		KODI_VERSION_GOTHAM
+#define KODI_VERSION_MAX		KODI_VERSION_HELIX
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
@@ -682,8 +683,6 @@ initialize_actions(void)
 			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
 			break;
 
-		case KODI_VERSION_FRODO:
-		case KODI_VERSION_GOTHAM:
 		default:
 			/* Player actions */
 			register_action("MENU", "Input.ShowOSD", NULL, NULL, 0, 1, 0, 0);
