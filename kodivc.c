@@ -2,7 +2,7 @@
  *
  * kodivc - a program for controlling Kodi with simple voice commands
  *
- * Copyright (C) Michal Kepien, 2012-2013.
+ * Copyright (C) Michal Kepien, 2012-2015.
  *
  * The listening code is heavily based on the sample continuous listening
  * program (continuous.c) provided along with pocketsphinx.
