@@ -1,4 +1,4 @@
-Language model created by QuickLM on Wed Mar  6 07:57:12 EST 2013
+Language model created by QuickLM on Thu Jan  8 05:15:29 EST 2015
 Copyright (c) 1996-2010 Carnegie Mellon University and Alexander I. Rudnicky
 
 The model is in standard ARPA format, designed by Doug Paul while he was at MITRE.
@@ -48,6 +48,7 @@ ngram 3=91
 -2.7372 INDIA -0.2218
 -2.7372 JULIET -0.2218
 -2.7372 KILO -0.2218
+-2.7372 KODI -0.2218
 -2.7372 LEFT -0.2218
 -2.7372 LIMA -0.2218
 -2.7372 LOWER -0.2218
@@ -103,7 +104,6 @@ ngram 3=91
 -2.7372 VOLUME -0.2218
 -2.7372 WEATHER -0.2218
 -2.7372 WHISKEY -0.2218
--2.7372 X_B_M_C -0.2218
 -2.7372 X_RAY -0.2218
 -2.7372 YANKEE -0.2218
 -2.7372 ZERO -0.2218
@@ -141,6 +141,7 @@ ngram 3=91
 -2.2601 <s> INDIA 0.0000
 -2.2601 <s> JULIET 0.0000
 -2.2601 <s> KILO 0.0000
+-2.2601 <s> KODI 0.0000
 -2.2601 <s> LEFT 0.0000
 -2.2601 <s> LIMA 0.0000
 -2.2601 <s> LOWER 0.0000
@@ -196,7 +197,6 @@ ngram 3=91
 -2.2601 <s> VOLUME 0.0000
 -2.2601 <s> WEATHER 0.0000
 -2.2601 <s> WHISKEY 0.0000
--2.2601 <s> X_B_M_C 0.0000
 -2.2601 <s> X_RAY 0.0000
 -2.2601 <s> YANKEE 0.0000
 -2.2601 <s> ZERO 0.0000
@@ -232,6 +232,7 @@ ngram 3=91
 -0.3010 INDIA </s> -0.3010
 -0.3010 JULIET </s> -0.3010
 -0.3010 KILO </s> -0.3010
+-0.3010 KODI </s> -0.3010
 -0.3010 LEFT </s> -0.3010
 -0.3010 LIMA </s> -0.3010
 -0.3010 LOWER </s> -0.3010
@@ -287,7 +288,6 @@ ngram 3=91
 -0.3010 VOLUME </s> -0.3010
 -0.3010 WEATHER </s> -0.3010
 -0.3010 WHISKEY </s> -0.3010
--0.3010 X_B_M_C </s> -0.3010
 -0.3010 X_RAY </s> -0.3010
 -0.3010 YANKEE </s> -0.3010
 -0.3010 ZERO </s> -0.3010
@@ -325,6 +325,7 @@ ngram 3=91
 -0.3010 <s> INDIA </s>
 -0.3010 <s> JULIET </s>
 -0.3010 <s> KILO </s>
+-0.3010 <s> KODI </s>
 -0.3010 <s> LEFT </s>
 -0.3010 <s> LIMA </s>
 -0.3010 <s> LOWER </s>
@@ -380,7 +381,6 @@ ngram 3=91
 -0.3010 <s> VOLUME </s>
 -0.3010 <s> WEATHER </s>
 -0.3010 <s> WHISKEY </s>
--0.3010 <s> X_B_M_C </s>
 -0.3010 <s> X_RAY </s>
 -0.3010 <s> YANKEE </s>
 -0.3010 <s> ZERO </s>

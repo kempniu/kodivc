@@ -1,22 +1,22 @@
 /*
  *
- * xbmcvc - a program for controlling XBMC with simple voice commands
+ * kodivc - a program for controlling Kodi with simple voice commands
  *
  * Copyright (C) Michal Kepien, 2012-2013.
  *
- * The listening code is heavily based on the sample continous listening
- * program (continous.c) provided along with pocketsphinx.
+ * The listening code is heavily based on the sample continuous listening
+ * program (continuous.c) provided along with pocketsphinx.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; see the file LICENSE. If not, write to
  * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
@@ -51,16 +51,16 @@
 /* Constants */
 #define VERSION				"0.5"
 #define USAGE_MESSAGE			"\n" \
-					"Usage: xbmcvc [ -H <host> ] [ -P <port> ] [ -u <username> ] [ -p <password> ]\n" \
+					"Usage: kodivc [ -H <host> ] [ -P <port> ] [ -u <username> ] [ -p <password> ]\n" \
 					"              [ -d ] [ -D <device> ] [ -l ] [ -L <file>|syslog ] [ -n ]\n" \
 					"              [ -r <pidfile> ] [ -t ] [ -V ] [ -h ]\n" \
 					"\n" \
-					"    -H <host>         Hostname or IP address of the XBMC instance you want\n" \
+					"    -H <host>         Hostname or IP address of the Kodi instance you want\n" \
 					"                      to control (default: localhost)\n" \
-					"    -P <port>         Port number the XBMC instance you want to control\n" \
+					"    -P <port>         Port number the Kodi instance you want to control\n" \
 					"                      is listening on (default: 8080)\n" \
-					"    -u <username>     JSON-RPC username (only required if set in XBMC)\n" \
-					"    -p <password>     JSON-RPC password (only required if set in XBMC)\n" \
+					"    -u <username>     JSON-RPC username (only required if set in Kodi)\n" \
+					"    -p <password>     JSON-RPC password (only required if set in Kodi)\n" \
 					"    -d                Run in daemon mode\n" \
 					"    -D <device>       Name of audio device to capture speech from\n" \
 					"    -l                Disable locking/unlocking\n" \
@@ -73,7 +73,7 @@
 					"    -h                Print this help message\n" \
 					"\n"
 
-#define COMMAND_UNLOCK			"X_B_M_C"
+#define COMMAND_UNLOCK			"KODI"
 #define COMMAND_LOCK			"OKAY"
 #define JSON_RPC_DEFAULT_HOST		"localhost"
 #define JSON_RPC_DEFAULT_PORT		8080
@@ -83,16 +83,16 @@
 #define JSON_RPC_POST_WITH_PARAMS	"{\"jsonrpc\":\"2.0\",\"method\":\"%s\",\"params\":{%s},\"id\":1}"
 #define MAX_ACTIONS			5
 #define SPELLING_BUFFER_SIZE		256
-#define XBMC_VERSION_EDEN		11
-#define XBMC_VERSION_FRODO		12
-#define XBMC_VERSION_GOTHAM		13
-#define XBMC_VERSION_MIN		XBMC_VERSION_EDEN
-#define XBMC_VERSION_MAX		XBMC_VERSION_GOTHAM
+#define KODI_VERSION_EDEN		11
+#define KODI_VERSION_FRODO		12
+#define KODI_VERSION_GOTHAM		13
+#define KODI_VERSION_MIN		KODI_VERSION_EDEN
+#define KODI_VERSION_MAX		KODI_VERSION_GOTHAM
 
 /* Language model files */
 #define MODEL_HMM			MODELDIR "/hmm/en_US/hub4wsj_sc_8k"
-#define MODEL_LM			MODELDIR "/lm/en/xbmcvc/xbmcvc.lm"
-#define MODEL_DICT			MODELDIR "/lm/en/xbmcvc/normal.dic"
+#define MODEL_LM			MODELDIR "/lm/en/kodivc/kodivc.lm"
+#define MODEL_DICT			MODELDIR "/lm/en/kodivc/normal.dic"
 
 /* Macros */
 #define ARRAY_SIZE(array)		(sizeof(array) / sizeof(array[0]))
@@ -165,7 +165,7 @@ int		locked = 1;
 mode_t		mode = MODE_NORMAL;
 char		spelling_buffer[SPELLING_BUFFER_SIZE];
 int		spelling_case = 0;
-int		xbmc_version;
+int		kodi_version;
 
 /* Exit flag */
 volatile int	exit_flag = 0;
@@ -212,7 +212,7 @@ cleanup(void)
 		free(actions[i]);
 	}
 	free(actions);
-	
+
 	/* Command to character mapping */
 	for (i=0; i<cmap_count; i++)
 	{
@@ -243,7 +243,7 @@ vprint_log(const int level, const char* format, va_list args)
 		snprintf(timestamp, 32, "%s", asctime(localtime(&now)));
 		/* Trim newline */
 		*(timestamp + strlen(timestamp) - 1) = '\0';
-		fprintf(config_logfile, "%s xbmcvc[%d]: %s: ", timestamp, getpid(), loglevels[level]);
+		fprintf(config_logfile, "%s kodivc[%d]: %s: ", timestamp, getpid(), loglevels[level]);
 		vfprintf(config_logfile, format, args);
 		fprintf(config_logfile, "\n");
 	}
@@ -299,24 +299,24 @@ parse_options(int argc, char* argv[])
 		switch(option)
 		{
 
-			/* XBMC host */
+			/* Kodi host */
 			case 'H':
 				config_json_rpc_host = realloc(config_json_rpc_host, strlen(optarg) + 1);
 				sprintf(config_json_rpc_host, "%s", optarg);
 				break;
 
-			/* XBMC port */
+			/* Kodi port */
 			case 'P':
 				snprintf(config_json_rpc_port, 6, "%s", optarg);
 				break;
 
-			/* XBMC username */
+			/* Kodi username */
 			case 'u':
 				config_json_rpc_username = malloc(strlen(optarg) + 1);
 				sprintf(config_json_rpc_username, "%s", optarg);
 				break;
 
-			/* XBMC password */
+			/* Kodi password */
 			case 'p':
 				config_json_rpc_password = malloc(strlen(optarg) + 1);
 				sprintf(config_json_rpc_password, "%s", optarg);
@@ -342,13 +342,13 @@ parse_options(int argc, char* argv[])
 			case 'L':
 				if (strcmp(optarg, "syslog") == 0)
 				{
-					openlog("xbmcvc", LOG_PID, LOG_USER);
+					openlog("kodivc", LOG_PID, LOG_USER);
 					config_syslog = 1;
 				}
 				else
 				{
 					config_logfile = fopen(optarg, "a");
- 					if (config_logfile == NULL)
+					if (config_logfile == NULL)
 						die("Unable to open logfile %s", optarg);
 				}
 				break;
@@ -378,7 +378,7 @@ parse_options(int argc, char* argv[])
 
 			/* Version information */
 			case 'V':
-				printf("xbmcvc " VERSION);
+				printf("kodivc " VERSION);
 				if (strlen(GITVERSION) > 0)
 					printf(" (Git: " GITVERSION ")");
 				printf("\n");
@@ -520,7 +520,7 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 	/* Send JSON-RPC request */
 	result = curl_easy_perform(curl);
 	if (result != 0)
-		print_log(LOG_WARNING, "XBMC instance at %s:%s is not responding", config_json_rpc_host, config_json_rpc_port);
+		print_log(LOG_WARNING, "Kodi instance at %s:%s is not responding", config_json_rpc_host, config_json_rpc_port);
 
 	/* If caller provided a pointer, save response there (if it exists) */
 	if (dst && response)
@@ -547,7 +547,7 @@ send_gui_notification(const char* title, const char* message, const char* icon)
 	const char*	format = "\"title\":\"%s\",\"message\":\"%s\",\"image\":\"%s\"";
 	char*		params;
 
-	if (xbmc_version >= XBMC_VERSION_FRODO && config_notifications)
+	if (kodi_version >= KODI_VERSION_FRODO && config_notifications)
 	{
 		params = malloc(strlen(format) + strlen(title) + strlen(message) + strlen(icon));
 		sprintf(params, format, title, message, icon);
@@ -668,10 +668,10 @@ initialize_actions(void)
 	register_action("FIVE", NULL, NULL, repeatable, repeatable_size, 5, 0, 0);
 
 	/* Version-dependent actions */
-	switch(xbmc_version)
+	switch(kodi_version)
 	{
 
-		case XBMC_VERSION_EDEN:
+		case KODI_VERSION_EDEN:
 			register_action("NEXT", "Player.GoNext", NULL, NULL, 0, 1, 1, 0);
 			register_action("PAUSE", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
 			register_action("PLAY", "Player.PlayPause", NULL, NULL, 0, 1, 1, 0);
@@ -682,8 +682,8 @@ initialize_actions(void)
 			register_action("UNSHUFFLE", "Player.UnShuffle", NULL, NULL, 0, 1, 1, 0);
 			break;
 
-		case XBMC_VERSION_FRODO:
-		case XBMC_VERSION_GOTHAM:
+		case KODI_VERSION_FRODO:
+		case KODI_VERSION_GOTHAM:
 		default:
 			/* Player actions */
 			register_action("MENU", "Input.ShowOSD", NULL, NULL, 0, 1, 0, 0);
@@ -824,8 +824,8 @@ perform_actions(const char* hyp)
 				sprintf(argument_search, "%s:", action_string);
 
 				/* Don't look for an action but rather for an argument to last action;
-				   if the argument is optional, ignore the last entry in argument table 
-			 	   (required => search until [size]; not required => search until [size - 1]) */
+				   if the argument is optional, ignore the last entry in argument table
+				   (required => search until [size]; not required => search until [size - 1]) */
 				while (k < action->req_size - (1 - action->needs_argument) && !matched)
 				{
 					/* If current word is a valid argument to last action... */
@@ -1085,7 +1085,7 @@ process_hypothesis(const char* hyp)
 			if (strstr(hyp, COMMAND_UNLOCK) == hyp)
 			{
 				locked = 0;
-				print_log(LOG_INFO, "xbmcvc is now unlocked");
+				print_log(LOG_INFO, "kodivc is now unlocked");
 				/* Check if there are further commands after the unlock command */
 				next_word = strchr(hyp, ' ');
 				if (next_word)
@@ -1109,7 +1109,7 @@ process_hypothesis(const char* hyp)
 			/* ...the first command heard is not the unlock command, warn and ignore all commands */
 			else
 			{
-				print_log(LOG_WARNING, "xbmcvc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock");
+				print_log(LOG_WARNING, "kodivc is locked and not processing commands, say " COMMAND_UNLOCK " to unlock");
 			}
 		}
 		/* If we are unlocked and the only command heard is the lock command, lock */
@@ -1117,7 +1117,7 @@ process_hypothesis(const char* hyp)
 		{
 			locked = 1;
 			send_gui_notification("Voice recognition disabled", "Not listening for commands", "warning");
-			print_log(LOG_INFO, "xbmcvc is now locked");
+			print_log(LOG_INFO, "kodivc is now locked");
 		}
 	}
 
@@ -1132,7 +1132,7 @@ process_hypothesis(const char* hyp)
 				/* Change to spelling mode */
 				if (strcmp("SPELL", hyp_new) == 0)
 				{
-					if (xbmc_version >= XBMC_VERSION_FRODO)
+					if (kodi_version >= KODI_VERSION_FRODO)
 					{
 						memset(spelling_buffer, 0, SPELLING_BUFFER_SIZE);
 						send_json_rpc_request("Input.SendText", "\"text\":\"\",\"done\":false", NULL);
@@ -1232,7 +1232,7 @@ main(int argc, char* argv[])
 	core_limit.rlim_cur = RLIM_INFINITY;
 	core_limit.rlim_max = RLIM_INFINITY;
 	setrlimit(RLIMIT_CORE, &core_limit);
-	
+
 	/* Register a memory-freeing routine to run upon exiting */
 	atexit(cleanup);
 
@@ -1271,30 +1271,30 @@ main(int argc, char* argv[])
 		die("Hidden Markov acoustic model not found at %s. Please check your Pocketsphinx installation.", MODEL_HMM);
 
 	if (access(MODEL_LM, R_OK) == -1)
-		die("xbmcvc language model not found at %s. Please check your Pocketsphinx installation.", MODEL_LM);
+		die("kodivc language model not found at %s. Please check your Pocketsphinx installation.", MODEL_LM);
 
 	for (i=0; i<MODE_NONE; i++)
 	{
-		dict = malloc(strlen(MODELDIR "/lm/en/xbmcvc/.dic") + strlen(modes[i]) + 1);
-		sprintf(dict, MODELDIR "/lm/en/xbmcvc/%s.dic", modes[i]);
+		dict = malloc(strlen(MODELDIR "/lm/en/kodivc/.dic") + strlen(modes[i]) + 1);
+		sprintf(dict, MODELDIR "/lm/en/kodivc/%s.dic", modes[i]);
 		if (access(dict, R_OK) == -1)
-			die("xbmcvc dictionary %s not found. Please check your xbmcvc installation.", dict);
+			die("kodivc dictionary %s not found. Please check your kodivc installation.", dict);
 		free(dict);
 	}
 
 	print_log(LOG_INFO, "Initializing, please wait...");
 
-	/* Check XBMC version */
-	xbmc_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
+	/* Check Kodi version */
+	kodi_version = get_json_rpc_response_int("Application.GetProperties", "\"properties\":[\"version\"]", "major");
 
-	if (xbmc_version == -2)
-		die("Unable to connect to XBMC running at %s:%s", config_json_rpc_host, config_json_rpc_port);
-	else if (xbmc_version == -1)
-		die("Unable to determine XBMC version running at %s:%s", config_json_rpc_host, config_json_rpc_port);
-	else if (xbmc_version < XBMC_VERSION_MIN)
-		die("XBMC version %d, which is running at %s:%s, is unsupported", xbmc_version, config_json_rpc_host, config_json_rpc_port);
- 	else if (xbmc_version > XBMC_VERSION_MAX)
-		print_log(LOG_WARNING, "Support for XBMC version %d, which is running at %s:%s, is EXPERIMENTAL", xbmc_version, config_json_rpc_host, config_json_rpc_port);
+	if (kodi_version == -2)
+		die("Unable to connect to Kodi running at %s:%s", config_json_rpc_host, config_json_rpc_port);
+	else if (kodi_version == -1)
+		die("Unable to determine Kodi version running at %s:%s", config_json_rpc_host, config_json_rpc_port);
+	else if (kodi_version < KODI_VERSION_MIN)
+		die("Kodi version %d, which is running at %s:%s, is unsupported", kodi_version, config_json_rpc_host, config_json_rpc_port);
+	else if (kodi_version > KODI_VERSION_MAX)
+		print_log(LOG_WARNING, "Support for Kodi version %d, which is running at %s:%s, is EXPERIMENTAL", kodi_version, config_json_rpc_host, config_json_rpc_port);
 
 	/* Setup action database */
 	initialize_actions();
@@ -1438,8 +1438,8 @@ main(int argc, char* argv[])
 			if (process_hypothesis(hyp) == 1)
 			{
 				/* If process_hypothesis() returns 1, mode of operation has changed - load a proper dictionary */
-				dict = malloc(strlen(MODELDIR "/lm/en/xbmcvc/.dic") + strlen(modes[mode]) + 1);
-				sprintf(dict, MODELDIR "/lm/en/xbmcvc/%s.dic", modes[mode]);
+				dict = malloc(strlen(MODELDIR "/lm/en/kodivc/.dic") + strlen(modes[mode]) + 1);
+				sprintf(dict, MODELDIR "/lm/en/kodivc/%s.dic", modes[mode]);
 				ps_load_dict(ps, dict, NULL, NULL);
 				free(dict);
 			}
