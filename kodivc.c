@@ -170,7 +170,7 @@ int		spelling_case = 0;
 int		kodi_version;
 
 /* Exit flag */
-volatile int	exit_flag = 0;
+volatile sig_atomic_t exit_flag = 0;
 
 /*---------------------------------------------------------------------------*/
 
