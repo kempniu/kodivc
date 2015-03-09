@@ -37,6 +37,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <assert.h>
 #include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
@@ -298,7 +299,9 @@ parse_options(int argc, char* argv[])
 	config_logfile = NULL;
 	config_pidfile = NULL;
 
+	assert(config_json_rpc_host);
 	sprintf(config_json_rpc_host, "%s", JSON_RPC_DEFAULT_HOST);
+	assert(config_json_rpc_port);
 	snprintf(config_json_rpc_port, 6, "%d", JSON_RPC_DEFAULT_PORT);
 
 	/* Process command line options */
@@ -310,6 +313,7 @@ parse_options(int argc, char* argv[])
 			/* Kodi host */
 			case 'H':
 				config_json_rpc_host = realloc(config_json_rpc_host, strlen(optarg) + 1);
+				assert(config_json_rpc_host);
 				sprintf(config_json_rpc_host, "%s", optarg);
 				break;
 
@@ -321,12 +325,14 @@ parse_options(int argc, char* argv[])
 			/* Kodi username */
 			case 'u':
 				config_json_rpc_username = malloc(strlen(optarg) + 1);
+				assert(config_json_rpc_username);
 				sprintf(config_json_rpc_username, "%s", optarg);
 				break;
 
 			/* Kodi password */
 			case 'p':
 				config_json_rpc_password = malloc(strlen(optarg) + 1);
+				assert(config_json_rpc_password);
 				sprintf(config_json_rpc_password, "%s", optarg);
 				break;
 
@@ -338,6 +344,7 @@ parse_options(int argc, char* argv[])
 			/* audio capture device */
 			case 'D':
 				config_audio_device = realloc(config_audio_device, strlen(optarg) + 1);
+				assert(config_audio_device);
 				sprintf(config_audio_device, "%s", optarg);
 				break;
 
@@ -376,6 +383,7 @@ parse_options(int argc, char* argv[])
 				fprintf(pidfile, "%d", getpid());
 				fclose(pidfile);
 				config_pidfile = malloc(strlen(optarg) + 1);
+				assert(config_pidfile);
 				sprintf(config_pidfile, "%s", optarg);
 				break;
 
@@ -436,11 +444,13 @@ append_param(char** current, const char* append)
 	if (*current)
 	{
 		*current = realloc(*current, strlen(*current) + strlen(append) + 2);
+		assert(*current);
 		strcat(*current, ",");
 	}
 	else
 	{
 		*current = malloc(strlen(append) + 1);
+		assert(*current);
 		**current = '\0';
 	}
 	strcat(*current, append);
@@ -452,6 +462,7 @@ save_response_in_memory(const char* ptr, const size_t size, const size_t nmemb, 
 {
 	curl_userdata_t* cud = (curl_userdata_t *) userdata;
 	*cud->dst = realloc(*cud->dst, cud->dst_s + (size * nmemb) + 1);
+	assert(*cud->dst);
 	memcpy(*cud->dst + cud->dst_s, ptr, size * nmemb);
 	cud->dst_s += size * nmemb;
 	/* Null-terminate response for easier handling */
@@ -481,6 +492,7 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 			+ strlen(config_json_rpc_host)
 			+ strlen(config_json_rpc_port)
 		);
+		assert(url);
 		sprintf(url, JSON_RPC_URL_AUTH, config_json_rpc_username, config_json_rpc_password, config_json_rpc_host, config_json_rpc_port);
 	}
 	else
@@ -490,6 +502,7 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 			+ strlen(config_json_rpc_host)
 			+ strlen(config_json_rpc_port)
 		);
+		assert(url);
 		sprintf(url, JSON_RPC_URL, config_json_rpc_host, config_json_rpc_port);
 	}
 
@@ -497,11 +510,13 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 	if (params == NULL)
 	{
 		post = malloc(strlen(JSON_RPC_POST) + strlen(method));
+		assert(post);
 		sprintf(post, JSON_RPC_POST, method);
 	}
 	else
 	{
 		post = malloc(strlen(JSON_RPC_POST_WITH_PARAMS) + strlen(method) + strlen(params));
+		assert(post);
 		sprintf(post, JSON_RPC_POST_WITH_PARAMS, method, params);
 	}
 
@@ -534,6 +549,7 @@ send_json_rpc_request(const char* method, const char* params, char** dst)
 	if (dst && response)
 	{
 		*dst = realloc(*dst, strlen(response) + 1);
+		assert(*dst);
 		strcpy(*dst, response);
 	}
 
@@ -558,6 +574,7 @@ send_gui_notification(const char* title, const char* message, const char* icon)
 	if (kodi_version >= KODI_VERSION_FRODO && config_notifications)
 	{
 		params = malloc(strlen(format) + strlen(title) + strlen(message) + strlen(icon));
+		assert(params);
 		sprintf(params, format, title, message, icon);
 		send_json_rpc_request("GUI.ShowNotification", params, NULL);
 		free(params);
@@ -585,6 +602,7 @@ get_json_rpc_response_int(const char* method, const char* params, const char* pa
 	{
 		result += strlen("\"result\":") + 1;
 		param_search = malloc(strlen(param) + 4);
+		assert(param_search);
 		sprintf(param_search, "\"%s\":", param);
 		param_string = strstr(result, param_search);
 		if (param_string)
@@ -616,6 +634,7 @@ register_action(const char* word, const char* method, const char* params, const 
 
 	/* Allocate memory for action structure */
 	action_t* a = malloc(sizeof(action_t));
+	assert(a);
 
 	/* Copy function arguments to structure fields */
 	a->word = strdup(word);
@@ -633,6 +652,7 @@ register_action(const char* word, const char* method, const char* params, const 
 	if (req)
 	{
 		a->req = calloc(req_size, sizeof(char *));
+		assert(a->req);
 		memcpy(a->req, req, req_size * sizeof(char *));
 	}
 	else
@@ -647,6 +667,7 @@ register_action(const char* word, const char* method, const char* params, const 
 
 	/* Expand action database */
 	actions = realloc(actions, (actions_count + 1) * sizeof(action_t *));
+	assert(actions);
 	/* Add action to database */
 	actions[actions_count] = a;
 	actions_count++;
@@ -748,6 +769,7 @@ perform_actions(const char* hyp)
 			/* Extract single word */
 			len = i - ls + 1;
 			action_string = malloc(len);
+			assert(action_string);
 			memset(action_string, 0, len);
 			memcpy(action_string, hyp + ls, len - 1);
 
@@ -788,6 +810,7 @@ perform_actions(const char* hyp)
 
 								/* Insert a copy of action into queue */
 								action_queued = malloc(sizeof(action_t));
+								assert(action_queued);
 								memcpy(action_queued, action, sizeof(action_t));
 								action_queued->params = NULL;
 								queue[j++] = action_queued;
@@ -797,6 +820,7 @@ perform_actions(const char* hyp)
 								{
 									/* Player ID can be max 1 char */
 									action_queued->params = malloc(strlen("\"playerid\":") + 2);
+									assert(action_queued->params);
 									sprintf(action_queued->params, "\"playerid\":%d", player_id);
 								}
 
@@ -827,6 +851,7 @@ perform_actions(const char* hyp)
 			{
 
 				argument_search = malloc(strlen(action_string) + 2);
+				assert(argument_search);
 				sprintf(argument_search, "%s:", action_string);
 
 				/* Don't look for an action but rather for an argument to last action;
@@ -841,6 +866,7 @@ perform_actions(const char* hyp)
 						param = strchr(action->req[k], ':') + 1;
 						/* Generate formatted param string */
 						params_fmt = malloc(strlen(action->params) + strlen(param) + 1);
+						assert(params_fmt);
 						sprintf(params_fmt, action->params, param);
 						/* Add formatted param string to last action's params */
 						append_param(&queue[j-1]->params, params_fmt);
@@ -895,6 +921,7 @@ perform_actions(const char* hyp)
 			param = action->req[action->req_size-1];
 			/* Generate formatted param string */
 			params_fmt = malloc(strlen(action->params) + strlen(param) + 1);
+			assert(params_fmt);
 			sprintf(params_fmt, action->params, param);
 			/* Add formatted param string to last action's params */
 			append_param(&queue[j-1]->params, params_fmt);
@@ -926,11 +953,13 @@ register_cmap(const char* string, const int character)
 {
 
 	cmap_t* mapping = malloc(sizeof(cmap_t));
+	assert(mapping);
 	mapping->string = malloc(strlen(string) + 1);
 	strcpy(mapping->string, string);
 	mapping->character = character;
 
 	cmap = realloc(cmap, sizeof(cmap_t *) * (cmap_count + 1));
+	assert(cmap);
 	cmap[cmap_count] = mapping;
 	cmap_count++;
 
@@ -1032,6 +1061,7 @@ perform_spelling(const char* hyp)
 
 			/* Extract a single command */
 			command = malloc(i - ls);
+			assert(command);
 			memset(command, 0, i - ls);
 			memcpy(command, hyp + ls + 1, i - ls - 1);
 
@@ -1104,6 +1134,7 @@ process_hypothesis(const char* hyp)
 				{
 					/* If not, send GUI notification confirming unlocking */
 					params = malloc(strlen("Current mode: %s") + strlen(modes[mode]));
+					assert(params);
 					sprintf(params, "Current mode: %s", modes[mode]);
 					send_gui_notification("Voice recognition enabled", params, "warning");
 					print_log(LOG_INFO, "Current mode: %s", modes[mode]);
@@ -1200,6 +1231,7 @@ process_hypothesis(const char* hyp)
 				{
 					perform_spelling(hyp_new);
 					params = malloc(strlen("\"text\":\"%s\",\"done\":false") + strlen(spelling_buffer));
+					assert(params);
 					sprintf(params, "\"text\":\"%s\",\"done\":false", spelling_buffer);
 					send_json_rpc_request("Input.SendText", params, NULL);
 					free(params);
@@ -1240,7 +1272,7 @@ main(int argc, char* argv[])
 	setrlimit(RLIMIT_CORE, &core_limit);
 
 	/* Register a memory-freeing routine to run upon exiting */
-	atexit(cleanup);
+	assert(atexit(cleanup) == 0);
 
 	/* Parse command line options */
 	parse_options(argc, argv);
@@ -1282,6 +1314,7 @@ main(int argc, char* argv[])
 	for (i=0; i<MODE_NONE; i++)
 	{
 		dict = malloc(strlen(MODELDIR "/lm/en/kodivc/.dic") + strlen(modes[i]) + 1);
+		assert(dict);
 		sprintf(dict, MODELDIR "/lm/en/kodivc/%s.dic", modes[i]);
 		if (access(dict, R_OK) == -1)
 			die("kodivc dictionary %s not found. Please check your kodivc installation.", dict);
@@ -1445,6 +1478,7 @@ main(int argc, char* argv[])
 			{
 				/* If process_hypothesis() returns 1, mode of operation has changed - load a proper dictionary */
 				dict = malloc(strlen(MODELDIR "/lm/en/kodivc/.dic") + strlen(modes[mode]) + 1);
+				assert(dict);
 				sprintf(dict, MODELDIR "/lm/en/kodivc/%s.dic", modes[mode]);
 				ps_load_dict(ps, dict, NULL, NULL);
 				free(dict);
