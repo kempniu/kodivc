@@ -728,7 +728,7 @@ initialize_actions(void)
 			register_action("PICTURES", "GUI.ActivateWindow", "\"window\":\"pictures\"", NULL, 0, 1, 0, 0);
 			register_action("PROGRAMS", "GUI.ActivateWindow", "\"window\":\"programs\"", NULL, 0, 1, 0, 0);
 			register_action("SETTINGS", "GUI.ActivateWindow", "\"window\":\"settings\"", NULL, 0, 1, 0, 0);
-			register_action("T_V", "GUI.ActivateWindow", "\"window\":\"tv\"", NULL, 0, 1, 0, 0);
+			register_action("T_V", "GUI.ActivateWindow", "\"window\":\"pvr\"", NULL, 0, 1, 0, 0);
 			register_action("VIDEOS", "GUI.ActivateWindow", "\"window\":\"videos\"", NULL, 0, 1, 0, 0);
 			register_action("WEATHER", "GUI.ActivateWindow", "\"window\":\"weather\"", NULL, 0, 1, 0, 0);
 			/* Other actions */
