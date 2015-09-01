@@ -20,7 +20,7 @@ Installation
 
 ### Using PPA ###
 
-__NOTE:__ This installation method is only available for KodiBuntu Helix, XBMCbuntu Gotham and Ubuntu versions 14.04 (Trusty Tahr) and newer.
+__NOTE:__ This installation method is only available for KodiBuntu, XBMCbuntu Gotham and Ubuntu versions 14.04 (Trusty Tahr) and newer.
 
 You can install the latest version of _kodivc_ by accessing your Kodi box:
 
@@ -35,16 +35,16 @@ and issuing the following commands:
     sudo apt-get update
     sudo apt-get -y install kodivc
 
-__NOTE:__ Official _pocketsphinx_ packages for Ubuntu 14.04 and newer are compiled with PulseAudio support enabled and ALSA support disabled. However, neither KodiBuntu nor XBMCbuntu use PulseAudio by default. To test _kodivc_ with KodiBuntu Helix or XBMCbuntu Gotham, you have to install and start PulseAudio. Here is a quick-and-dirty way to do it (for your own good, __please don't do this on a system installed on a hard disk__):
+__NOTE:__ Official _pocketsphinx_ packages for Ubuntu 14.04 and newer are compiled with PulseAudio support enabled and ALSA support disabled. However, neither KodiBuntu nor XBMCbuntu use PulseAudio by default. To test _kodivc_ with KodiBuntu or XBMCbuntu Gotham, you have to install and start PulseAudio. Here is a quick-and-dirty way to do it (for your own good, __please don't do this on a system installed on a hard disk__):
 
     sudo rm -f /etc/apt/preferences.d/{libasound2-plugins,pulseaudio}.pref
     sudo apt-get -y install pulseaudio
-    # for KodiBuntu Helix
+    # for KodiBuntu
     DISPLAY=:0 sudo -u kodi pulseaudio &
     # for XBMCbuntu Gotham
     DISPLAY=:0 sudo -u xbmc pulseaudio &
 
-If you install KodiBuntu Helix / XBMCbuntu Gotham on a hard disk, you'll have to properly configure PulseAudio and then configure Kodi to use PulseAudio as its sound sink (this is outside the scope of this document, but the Kodi wiki has [some useful information](http://kodi.wiki/view/PulseAudio)).
+If you install KodiBuntu / XBMCbuntu Gotham on a hard disk, you'll have to properly configure PulseAudio and then configure Kodi to use PulseAudio as its sound sink (this is outside the scope of this document, but the Kodi wiki has [some useful information](http://kodi.wiki/view/PulseAudio)).
 
 ### Using Git ###
 
@@ -57,17 +57,17 @@ __NOTE:__ the user running _kodivc_ should be allowed to access your sound card.
 
 ### Configuring Kodi ###
 
-_kodivc_ uses JSON-RPC via HTTP for passing commands to Kodi. In order for this to work, you need to go to the proper settings page in Kodi and turn on _Allow control of Kodi via HTTP_ (or _Allow control of XBMC via HTTP_ for versions before Helix):
+_kodivc_ uses JSON-RPC via HTTP for passing commands to Kodi. In order for this to work, you need to go to the proper settings page in Kodi and turn on _Allow remote control via HTTP_ (_Allow control of Kodi via HTTP_ in Helix, _Allow control of XBMC via HTTP_ in Gotham and older versions):
 
 * in Eden, you'll find it under _System_ -> _Settings_ -> _Network_ -> _Services_
-* in Frodo, Gotham and Helix, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Webserver_
+* in Frodo and newer versions, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Webserver_
 
-If you want to control your Kodi instance from another machine, make sure you also turn on _Allow programs on other systems to control Kodi_ (or _Allow programs on other systems to control XBMC_ for versions before Helix):
+If you want to control your Kodi instance from another machine, make sure you also turn on _Allow remote control by programs on other systems_ (_Allow programs on other systems to control Kodi_ in Helix, _Allow programs on other systems to control XBMC_ in Gotham and older versions):
 
 * in Eden, you'll find it under _System_ -> _Settings_ -> _Network_ -> _Services_
-* in Frodo, Gotham and Helix, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Remote control_
+* in Frodo and newer versions, you'll find it under _System_ -> _Settings_ -> _Services_ -> _Remote control_
 
-__NOTE:__ for the above settings to be available in Gotham and Helix, the current settings level has to be at least _Standard_.
+__NOTE:__ for the above settings to be available in Gotham and newer versions, the current settings level has to be at least _Standard_.
 
 Usage
 -----
